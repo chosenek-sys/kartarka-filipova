@@ -170,8 +170,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--cream);over
     </div>
     <span class="ai-badge">✦ AI DEMO</span>
     <div class="credit-display" id="creditDisplay">
-      <span class="credit-item" id="elCredits" title="ElevenLabs zbývající znaky">🔊 —</span>
-      <span class="credit-item" id="sessionTokens" title="Tokeny v této relaci">🔤 0</span>
+      <span class="credit-item" id="elCredits">🔊 Hlas: —</span>
+      <span class="credit-item" id="anthropicCredits">🔤 Claude: —</span>
     </div>
   </div>
 
@@ -217,12 +217,27 @@ let conversationHistory = [];
 let isGenerating = false;
 
 // ============ SESSION TRACKING ============
-const sessionStats = { totalInputTokens: 0, totalOutputTokens: 0, totalTtsChars: 0, messageCount: 0 };
+const sessionStats = {
+  totalInputTokens: 0, totalOutputTokens: 0, totalTtsChars: 0, messageCount: 0,
+  anthropicStartBalance: null, // set from /api/credits
+};
 
 function updateSessionDisplay() {
-  const totalTokens = sessionStats.totalInputTokens + sessionStats.totalOutputTokens;
-  const tokenEl = document.getElementById('sessionTokens');
-  if (tokenEl) tokenEl.textContent = `🔤 ${totalTokens.toLocaleString('cs-CZ')}`;
+  // Estimate Anthropic cost: Sonnet 4.6 = $3/M input + $15/M output
+  const inputCost = (sessionStats.totalInputTokens / 1_000_000) * 3;
+  const outputCost = (sessionStats.totalOutputTokens / 1_000_000) * 15;
+  const sessionCost = inputCost + outputCost;
+  const el = document.getElementById('anthropicCredits');
+  if (el && sessionStats.anthropicStartBalance !== null) {
+    const remaining = Math.max(0, sessionStats.anthropicStartBalance - sessionCost);
+    el.textContent = `🔤 Claude: $${remaining.toFixed(2)} / $${sessionStats.anthropicStartBalance.toFixed(2)}`;
+    const pct = sessionStats.anthropicStartBalance > 0 ? (remaining / sessionStats.anthropicStartBalance) * 100 : 0;
+    el.classList.toggle('warn', pct < 25 && pct >= 10);
+    el.classList.toggle('danger', pct < 10);
+  } else if (el) {
+    const totalTokens = sessionStats.totalInputTokens + sessionStats.totalOutputTokens;
+    el.textContent = `🔤 Claude: ${totalTokens.toLocaleString('cs-CZ')} tokenů (~$${sessionCost.toFixed(3)})`;
+  }
 }
 
 // ============ TYPEWRITER ENGINE ============
@@ -330,10 +345,15 @@ async function fetchCredits() {
       const limit = data.elevenlabs.characterLimit;
       const pct = limit > 0 ? (remaining / limit) * 100 : 0;
       const elEl = document.getElementById('elCredits');
-      elEl.textContent = `🔊 ${remaining.toLocaleString('cs-CZ')}`;
-      elEl.title = `ElevenLabs: ${remaining.toLocaleString('cs-CZ')} / ${limit.toLocaleString('cs-CZ')} znaků`;
-      if (pct < 10) elEl.classList.add('danger');
-      else if (pct < 25) elEl.classList.add('warn');
+      elEl.textContent = `🔊 Hlas: ${remaining.toLocaleString('cs-CZ')} / ${limit.toLocaleString('cs-CZ')} znaků`;
+      elEl.classList.toggle('warn', pct < 25 && pct >= 10);
+      elEl.classList.toggle('danger', pct < 10);
+    }
+    // Anthropic balance from server config
+    if (data.anthropic && typeof data.anthropic.balance === 'number') {
+      sessionStats.anthropicStartBalance = data.anthropic.balance;
+      const el = document.getElementById('anthropicCredits');
+      el.textContent = `🔤 Claude: $${data.anthropic.balance.toFixed(2)} / $${data.anthropic.balance.toFixed(2)}`;
     }
   } catch (fetchError) {
     console.error('Credits fetch error:', fetchError);
