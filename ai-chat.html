@@ -203,14 +203,39 @@ passwordInput.addEventListener('keydown', (event) => {
   if (event.key === 'Enter') checkPassword();
 });
 
-function checkPassword() {
+async function checkPassword() {
   const password = passwordInput.value.trim();
   if (!password) return;
 
-  authToken = password;
-  document.getElementById('passwordScreen').classList.add('hidden');
-  document.getElementById('chatApp').classList.remove('hidden');
-  document.getElementById('chatInput').focus();
+  const btn = document.getElementById('passwordBtn');
+  const errorEl = document.getElementById('passwordError');
+  btn.disabled = true;
+  btn.textContent = '⏳';
+  errorEl.textContent = '';
+
+  try {
+    const response = await fetch(`${API_BASE}/api/verify`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${password}`,
+      },
+    });
+
+    if (response.ok) {
+      authToken = password;
+      document.getElementById('passwordScreen').classList.add('hidden');
+      document.getElementById('chatApp').classList.remove('hidden');
+      document.getElementById('chatInput').focus();
+    } else {
+      errorEl.textContent = 'Neplatné heslo. Zkuste to prosím znovu.';
+    }
+  } catch (networkError) {
+    errorEl.textContent = 'Nelze se připojit k serveru. Zkuste to za chvíli.';
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Vstoupit';
 }
 
 // ============ RESPONSE MODE ============
