@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI Zdeňka – Duchovní průvodkyně</title>
-<meta name="description" content="Poraďte se s AI asistentkou Zdeňky Filipové. Duchovní vedení a podpora — textově i hlasově.">
+<title>AI Zdenka – Duchovní průvodkyně</title>
+<meta name="description" content="Poraďte se s AI asistentkou Zdenky Filipové. Duchovní vedení a podpora — textově i hlasově.">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -151,8 +151,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--cream);over
 <!-- PASSWORD SCREEN -->
 <div class="password-screen" id="passwordScreen">
   <div class="logo-icon">🔮</div>
-  <h1>AI Zdeňka</h1>
-  <p>Toto je soukromá ukázka AI asistentky Zdeňky Filipové. Pro přístup zadejte heslo.</p>
+  <h1>AI Zdenka</h1>
+  <p>Toto je soukromá ukázka AI asistentky Zdenky Filipové. Pro přístup zadejte heslo.</p>
   <div class="password-input-wrap">
     <input type="password" class="password-input" id="passwordInput" placeholder="Zadejte heslo..." autocomplete="off">
     <button class="btn-enter" id="passwordBtn" onclick="checkPassword()">Vstoupit</button>
@@ -165,7 +165,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--cream);over
   <div class="chat-header">
     <div class="chat-avatar">🔮</div>
     <div class="chat-header-info">
-      <h2>Zdeňka Filipová</h2>
+      <h2>Zdenka Filipová</h2>
       <p><span class="online-dot"></span> AI Duchovní průvodkyně</p>
     </div>
     <span class="ai-badge">✦ AI DEMO</span>
@@ -178,8 +178,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--cream);over
   <div class="chat-messages" id="chatMessages">
     <div class="welcome-msg">
       <div class="icon">✨</div>
-      <h3>Vítejte u AI Zdeňky</h3>
-      <p>Jsem AI asistentka inspirovaná Zdeňkou Filipovou. Mohu vám poskytnout duchovní vedení a podporu.</p>
+      <h3>Vítejte u AI Zdenky</h3>
+      <p>Jsem AI asistentka inspirovaná Zdenkou Filipovou. Mohu vám poskytnout duchovní vedení a podporu.</p>
       <div class="suggestions">
         <div class="suggestion" onclick="sendSuggestion(this)">Jak mohu změnit svůj život?</div>
         <div class="suggestion" onclick="sendSuggestion(this)">Potřebuji radu ohledně vztahu</div>
@@ -592,7 +592,7 @@ async function sendMessage() {
     hideTyping();
     typewriterFlush();
     console.error('Chat error:', error);
-    addMessage('assistant', 'Zdeňka potřebuje chvíli na meditaci. Zkuste to prosím za okamžik. 🙏');
+    addMessage('assistant', 'Zdenka potřebuje chvíli na meditaci. Zkuste to prosím za okamžik. 🙏');
   }
 
   isGenerating = false;
