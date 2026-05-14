@@ -91,7 +91,13 @@ async function handleRegister() {
   setAuthLoading(false);
 
   if (error) {
-    errorEl.textContent = 'Registrace selhala. Zkuste jiný email.';
+    if (error.message?.includes('already registered') || error.message?.includes('already been registered')) {
+      errorEl.textContent = 'Tento email je již zaregistrován. Zkuste se přihlásit.';
+    } else if (error.message?.includes('rate limit')) {
+      errorEl.textContent = 'Příliš mnoho pokusů. Zkuste to za chvíli.';
+    } else {
+      errorEl.textContent = `Registrace selhala: ${error.message || 'Neznámá chyba'}`;
+    }
   } else {
     errorEl.style.color = '#22c55e';
     errorEl.textContent = 'Registrace úspěšná! Zkontrolujte email pro potvrzení.';
