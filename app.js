@@ -268,12 +268,19 @@ async function loadConversation(conversationId) {
     currentConversationId = conversationId;
     conversationHistory = (data.messages || []).map(m => ({ role: m.role, content: m.content }));
 
+    // Update title bar
+    updateTitleBar(data.conversation?.title || 'Nová konzultace');
+
     // Re-render messages
     const container = document.getElementById('chatMessages');
     container.innerHTML = '';
     if (data.messages?.length) {
       for (const msg of data.messages) {
-        addMessage(msg.role, msg.content);
+        const msgDiv = addMessage(msg.role, msg.content);
+        // Add replay button to historical assistant messages
+        if (msg.role === 'assistant') {
+          addReplayButton(msgDiv, msg.content);
+        }
       }
     } else {
       showWelcome();
@@ -313,7 +320,55 @@ function startNewConversation() {
   const container = document.getElementById('chatMessages');
   container.innerHTML = '';
   showWelcome();
+  updateTitleBar('Nová konzultace');
   document.querySelectorAll('.conv-item').forEach(el => el.classList.remove('active'));
+}
+
+function updateTitleBar(title) {
+  const el = document.getElementById('convTitleText');
+  if (el) el.textContent = title;
+}
+
+function addReplayButton(messageDiv, text) {
+  const btn = document.createElement('button');
+  btn.className = 'btn-replay';
+  btn.innerHTML = '🔊 Přehrát hlasem';
+  btn.onclick = async () => {
+    btn.disabled = true;
+    btn.textContent = '⏳ Generuji...';
+    const audioContainer = document.createElement('div');
+    audioContainer.id = 'audioContainer-' + Date.now();
+    messageDiv.insertBefore(audioContainer, messageDiv.querySelector('.msg-time'));
+    await generateAudio(text, audioContainer);
+    btn.remove();
+  };
+  const timeEl = messageDiv.querySelector('.msg-time');
+  if (timeEl) messageDiv.insertBefore(btn, timeEl);
+}
+
+async function autoTitleConversation(userText) {
+  // Generate a short title from the first user message
+  const title = userText.length > 50 ? userText.substring(0, 47) + '...' : userText;
+  const token = await getAccessToken();
+  if (!token || !currentConversationId) return;
+
+  updateTitleBar(title);
+
+  try {
+    await fetch(`${API_BASE}/api/conversations`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        id: currentConversationId,
+        title: title,
+      }),
+    });
+  } catch (err) {
+    console.error('Failed to update conversation title:', err);
+  }
 }
 
 function showWelcome() {
@@ -618,6 +673,11 @@ async function sendMessage() {
       sessionStats.totalInputTokens += msgInputTokens;
       sessionStats.totalOutputTokens += msgOutputTokens;
       sessionStats.messageCount++;
+
+      // Auto-title on first message
+      if (sessionStats.messageCount === 1) {
+        autoTitleConversation(userText);
+      }
 
       // Per-message cost footer
       if (messageDiv && (msgInputTokens > 0 || msgOutputTokens > 0)) {
