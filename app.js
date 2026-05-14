@@ -139,20 +139,45 @@ function toggleAuthMode() {
 function showAuthScreen() {
   document.getElementById('authScreen').classList.remove('hidden');
   document.getElementById('chatApp').classList.add('hidden');
+
+  // Clear all user state to prevent data leak between sessions
   currentConversationId = null;
   conversationHistory = [];
+  isGenerating = false;
+  typewriterReset();
+
+  // Clear DOM
+  document.getElementById('chatMessages').innerHTML = '';
+  const listEl = document.getElementById('conversationList');
+  if (listEl) listEl.innerHTML = '';
+
+  // Reset session stats
+  sessionStats.totalInputTokens = 0;
+  sessionStats.totalOutputTokens = 0;
+  sessionStats.totalTtsChars = 0;
+  sessionStats.messageCount = 0;
+  sessionStats.anthropicBudget = null;
+  sessionStats.anthropicRemaining = null;
+
+  // Reset auth form
+  document.getElementById('authError').textContent = '';
+  document.getElementById('authError').style.color = '';
 }
 
 function showChat(user) {
   document.getElementById('authScreen').classList.add('hidden');
   document.getElementById('chatApp').classList.remove('hidden');
-  document.getElementById('chatInput').focus();
 
   const userNameEl = document.getElementById('userName');
   if (userNameEl) userNameEl.textContent = user.email;
 
+  // Start fresh with welcome screen
+  startNewConversation();
+
   fetchCredits();
   loadConversationList();
+
+  document.getElementById('chatInput').focus();
 }
 
 // ============ CONVERSATIONS ============
