@@ -2,8 +2,8 @@
 
 // ============ CONFIG ============
 const API_BASE = 'https://ai-api-amber.vercel.app';
-const SUPABASE_URL = 'YOUR_SUPABASE_URL'; // Replace after creating project
-const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY'; // Replace after creating project
+const SUPABASE_URL = 'https://dmtxfbzfbikynklkvjnw.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_eOjnyehEY92gd_u6XhQZqA_7qJLWtT-';
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
