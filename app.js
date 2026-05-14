@@ -83,21 +83,29 @@ async function handleRegister() {
   }
 
   setAuthLoading(true);
-  const { error } = await supabaseClient.auth.signUp({
+  const { data, error } = await supabaseClient.auth.signUp({
     email,
     password,
     options: { data: { display_name: name || email.split('@')[0] } },
   });
   setAuthLoading(false);
 
+  console.log('SignUp result:', { data, error });
+
   if (error) {
+    console.error('Registration error:', error.message, error.status, error);
     if (error.message?.includes('already registered') || error.message?.includes('already been registered')) {
       errorEl.textContent = 'Tento email je již zaregistrován. Zkuste se přihlásit.';
-    } else if (error.message?.includes('rate limit')) {
+    } else if (error.message?.includes('rate limit') || error.status === 429) {
       errorEl.textContent = 'Příliš mnoho pokusů. Zkuste to za chvíli.';
+    } else if (error.message?.includes('email') && error.message?.includes('not authorized')) {
+      errorEl.textContent = 'Tento email nelze použít pro registraci.';
     } else {
       errorEl.textContent = `Registrace selhala: ${error.message || 'Neznámá chyba'}`;
     }
+  } else if (data?.user?.identities?.length === 0) {
+    // Supabase returns fake success with empty identities when user already exists
+    errorEl.textContent = 'Tento email je již zaregistrován. Zkuste se přihlásit.';
   } else {
     errorEl.style.color = '#22c55e';
     errorEl.textContent = 'Registrace úspěšná! Zkontrolujte email pro potvrzení.';
