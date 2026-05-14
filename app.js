@@ -95,6 +95,14 @@ async function handleRegister() {
   } else {
     errorEl.style.color = '#22c55e';
     errorEl.textContent = 'Registrace úspěšná! Zkontrolujte email pro potvrzení.';
+
+    // Disable form to prevent re-submission
+    document.getElementById('authName').disabled = true;
+    document.getElementById('authEmail').disabled = true;
+    document.getElementById('authPassword').disabled = true;
+    document.getElementById('authPasswordConfirm').disabled = true;
+    document.getElementById('registerBtn').disabled = true;
+    document.getElementById('registerBtn').textContent = '✓ Registrováno';
   }
 }
 
@@ -129,6 +137,18 @@ function toggleAuthMode() {
   const registerBtn = document.getElementById('registerBtn');
   const toggleLink = document.getElementById('authToggle');
   const confirmField = document.getElementById('authPasswordConfirm');
+  const errorEl = document.getElementById('authError');
+
+  // Re-enable all fields (may have been disabled after successful registration)
+  document.getElementById('authName').disabled = false;
+  document.getElementById('authEmail').disabled = false;
+  document.getElementById('authPassword').disabled = false;
+  confirmField.disabled = false;
+  registerBtn.disabled = false;
+  registerBtn.textContent = 'Registrovat se';
+  errorEl.textContent = '';
+  errorEl.style.color = '';
+
   const isRegister = registerFields.classList.toggle('hidden');
 
   if (!isRegister) {
