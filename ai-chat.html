@@ -6,6 +6,7 @@
 <title>AI Zdenka – Duchovní průvodkyně</title>
 <meta name="description" content="Poraďte se s AI asistentkou Zdenky Filipové. Duchovní vedení a podpora — textově i hlasově.">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
@@ -18,31 +19,59 @@
 html,body{height:100%}
 body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--cream);overflow:hidden;line-height:1.6}
 
-/* Background effects */
+/* Background */
 .bg-glow{position:fixed;inset:0;pointer-events:none;z-index:0}
 .bg-glow::before,.bg-glow::after{content:'';position:absolute;border-radius:50%;filter:blur(120px);opacity:.25}
 .bg-glow::before{width:500px;height:500px;background:#7c5cbf;top:-10%;left:-8%;animation:drift 25s ease-in-out infinite}
 .bg-glow::after{width:400px;height:400px;background:#d4af37;bottom:-8%;right:-8%;animation:drift 25s ease-in-out infinite reverse}
 @keyframes drift{0%,100%{transform:translate(0,0)}50%{transform:translate(30px,-30px)}}
 
-/* Password screen */
-.password-screen{position:fixed;inset:0;z-index:200;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.5rem;text-align:center;padding:2rem}
-.password-screen.hidden{display:none}
-.password-screen .logo-icon{font-size:3rem;animation:float 3s ease-in-out infinite}
+/* Auth screen */
+.auth-screen{position:fixed;inset:0;z-index:200;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.2rem;text-align:center;padding:2rem}
+.auth-screen.hidden{display:none}
+.auth-screen .logo-icon{font-size:3rem;animation:float 3s ease-in-out infinite}
 @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
-.password-screen h1{font-family:'Cinzel',serif;font-size:1.8rem;color:var(--gold);letter-spacing:2px}
-.password-screen p{color:var(--muted);max-width:380px;font-size:.95rem}
-.password-input-wrap{display:flex;gap:.5rem;width:100%;max-width:340px}
-.password-input{flex:1;background:var(--surface);border:1px solid rgba(212,175,55,.2);border-radius:50px;padding:.75rem 1.2rem;color:var(--cream);font-family:'Inter',sans-serif;font-size:.95rem;outline:none;transition:border-color .3s}
-.password-input:focus{border-color:var(--gold)}
-.password-input::placeholder{color:var(--muted2)}
+.auth-screen h1{font-family:'Cinzel',serif;font-size:1.8rem;color:var(--gold);letter-spacing:2px}
+.auth-screen p{color:var(--muted);max-width:380px;font-size:.95rem}
+.auth-form{display:flex;flex-direction:column;gap:.5rem;width:100%;max-width:340px}
+.auth-input{background:var(--surface);border:1px solid rgba(212,175,55,.2);border-radius:50px;padding:.75rem 1.2rem;color:var(--cream);font-family:'Inter',sans-serif;font-size:.95rem;outline:none;transition:border-color .3s}
+.auth-input:focus{border-color:var(--gold)}
+.auth-input::placeholder{color:var(--muted2)}
 .btn-enter{background:linear-gradient(135deg,var(--gold),var(--gold-light));color:var(--bg);border:none;padding:.75rem 1.5rem;border-radius:50px;font-weight:600;font-size:.9rem;cursor:pointer;transition:all .3s;font-family:'Inter',sans-serif}
 .btn-enter:hover{transform:scale(1.05);box-shadow:0 4px 20px rgba(212,175,55,.3)}
-.password-error{color:#ef4444;font-size:.85rem;min-height:1.2rem}
+.btn-enter:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.auth-error{color:#ef4444;font-size:.85rem;min-height:1.2rem}
+.auth-link{color:var(--gold);font-size:.82rem;cursor:pointer;text-decoration:underline;background:none;border:none;font-family:'Inter',sans-serif}
+.auth-link:hover{color:var(--gold-light)}
+.hidden{display:none!important}
 
 /* Chat layout */
-.chat-app{display:flex;flex-direction:column;height:100vh;position:relative;z-index:1}
+.chat-app{display:flex;height:100vh;position:relative;z-index:1}
 .chat-app.hidden{display:none}
+
+/* Sidebar */
+.chat-sidebar{width:260px;background:rgba(13,6,24,.85);border-right:1px solid rgba(212,175,55,.1);display:flex;flex-direction:column;flex-shrink:0;backdrop-filter:blur(15px)}
+.sidebar-header{padding:.8rem;border-bottom:1px solid rgba(212,175,55,.1)}
+.btn-new-conv{width:100%;background:var(--surface);border:1px solid rgba(212,175,55,.15);border-radius:var(--radius-sm);padding:.6rem;color:var(--gold);font-family:'Inter',sans-serif;font-size:.85rem;cursor:pointer;transition:all .3s;display:flex;align-items:center;gap:.4rem;justify-content:center}
+.btn-new-conv:hover{background:rgba(212,175,55,.1);border-color:var(--gold)}
+#conversationList{flex:1;overflow-y:auto;padding:.4rem}
+#conversationList::-webkit-scrollbar{width:3px}
+#conversationList::-webkit-scrollbar-thumb{background:rgba(212,175,55,.2);border-radius:3px}
+.conv-item{padding:.5rem .7rem;border-radius:var(--radius-sm);cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:.4rem;margin-bottom:2px}
+.conv-item:hover{background:rgba(212,175,55,.08)}
+.conv-item.active{background:rgba(212,175,55,.12);border:1px solid rgba(212,175,55,.2)}
+.conv-title{flex:1;font-size:.82rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.conv-item.active .conv-title{color:var(--cream)}
+.conv-delete{background:none;border:none;color:var(--muted2);font-size:.7rem;cursor:pointer;opacity:0;transition:opacity .2s;padding:2px 4px}
+.conv-item:hover .conv-delete{opacity:1}
+.conv-delete:hover{color:#ef4444}
+.sidebar-footer{padding:.6rem .8rem;border-top:1px solid rgba(212,175,55,.1);display:flex;align-items:center;gap:.5rem}
+.sidebar-footer .user-email{flex:1;font-size:.7rem;color:var(--muted2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.btn-logout{background:none;border:1px solid rgba(212,175,55,.15);border-radius:50px;padding:.3rem .6rem;color:var(--muted);font-size:.7rem;cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s}
+.btn-logout:hover{border-color:var(--gold);color:var(--gold)}
+
+/* Main chat area */
+.chat-main{flex:1;display:flex;flex-direction:column;min-width:0}
 
 /* Header */
 .chat-header{padding:.8rem 1.5rem;display:flex;align-items:center;gap:.8rem;border-bottom:1px solid rgba(212,175,55,.1);backdrop-filter:blur(15px);background:rgba(13,6,24,.7);flex-shrink:0}
@@ -52,33 +81,37 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--cream);over
 .online-dot{width:6px;height:6px;background:#22c55e;border-radius:50%;animation:pulse-dot 2s infinite}
 @keyframes pulse-dot{0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,.4)}70%{box-shadow:0 0 0 6px rgba(34,197,94,0)}}
 .ai-badge{margin-left:auto;font-size:.65rem;color:var(--muted2);background:var(--surface);padding:.25rem .6rem;border-radius:50px;border:1px solid rgba(212,175,55,.1)}
+.credit-display{display:flex;gap:.4rem;margin-left:.5rem;flex-shrink:0}
+.credit-item{font-size:.6rem;color:var(--muted);background:var(--surface);padding:.15rem .45rem;border-radius:50px;border:1px solid rgba(212,175,55,.08);white-space:nowrap;transition:color .3s}
+.credit-item.warn{color:#f59e0b}
+.credit-item.danger{color:#ef4444}
 
-/* Messages area */
+/* Messages */
 .chat-messages{flex:1;overflow-y:auto;padding:1.2rem 1rem;display:flex;flex-direction:column;gap:.8rem;scroll-behavior:smooth}
 .chat-messages::-webkit-scrollbar{width:4px}
-.chat-messages::-webkit-scrollbar-track{background:transparent}
 .chat-messages::-webkit-scrollbar-thumb{background:rgba(212,175,55,.2);border-radius:4px}
-
-/* Message bubbles */
 .message{max-width:82%;display:flex;flex-direction:column;gap:.3rem;animation:msg-in .4s cubic-bezier(.16,1,.3,1)}
 @keyframes msg-in{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 .message.user{align-self:flex-end}
 .message.assistant{align-self:flex-start}
 .msg-bubble{padding:.8rem 1.1rem;border-radius:var(--radius);font-size:.92rem;line-height:1.65;word-wrap:break-word}
-.user .msg-bubble{background:linear-gradient(135deg,rgba(212,175,55,.18),rgba(212,175,55,.08));border:1px solid rgba(212,175,55,.2);border-bottom-right-radius:4px;color:var(--cream)}
-.assistant .msg-bubble{background:var(--surface);border:1px solid rgba(124,92,191,.15);border-bottom-left-radius:4px;color:var(--cream)}
+.user .msg-bubble{background:linear-gradient(135deg,rgba(212,175,55,.18),rgba(212,175,55,.08));border:1px solid rgba(212,175,55,.2);border-bottom-right-radius:4px}
+.assistant .msg-bubble{background:var(--surface);border:1px solid rgba(124,92,191,.15);border-bottom-left-radius:4px}
 .msg-time{font-size:.7rem;color:var(--muted2);padding:0 .3rem}
 .user .msg-time{text-align:right}
+.msg-bubble.streaming::after{content:'▊';animation:blink-caret .8s steps(2) infinite;color:var(--gold);font-weight:300;margin-left:1px}
+@keyframes blink-caret{0%,100%{opacity:1}50%{opacity:0}}
+.msg-cost{font-size:.65rem;color:var(--muted2);padding:.15rem .3rem;opacity:0;transition:opacity .4s ease;display:flex;gap:.6rem;align-items:center}
+.msg-cost.visible{opacity:.7}
 
-/* Typing indicator */
+/* Typing */
 .typing-indicator{display:flex;gap:.3rem;padding:.8rem 1.1rem;background:var(--surface);border:1px solid rgba(124,92,191,.15);border-radius:var(--radius);border-bottom-left-radius:4px;width:fit-content}
-.typing-indicator.hidden{display:none}
 .typing-dot{width:7px;height:7px;background:var(--muted);border-radius:50%;animation:typing-bounce 1.4s ease-in-out infinite}
 .typing-dot:nth-child(2){animation-delay:.2s}
 .typing-dot:nth-child(3){animation-delay:.4s}
 @keyframes typing-bounce{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-6px);opacity:1}}
 
-/* Audio player */
+/* Audio */
 .audio-player{display:flex;align-items:center;gap:.6rem;padding:.5rem .8rem;background:rgba(212,175,55,.08);border:1px solid rgba(212,175,55,.15);border-radius:var(--radius-sm);margin-top:.4rem}
 .audio-btn{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold-light));border:none;color:var(--bg);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.8rem;flex-shrink:0;transition:all .2s}
 .audio-btn:hover{transform:scale(1.1)}
@@ -89,7 +122,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--cream);over
 .audio-loading .spinner{width:14px;height:14px;border:2px solid rgba(212,175,55,.2);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* Welcome message */
+/* Welcome */
 .welcome-msg{text-align:center;padding:2rem 1rem;color:var(--muted);align-self:center}
 .welcome-msg .icon{font-size:2.5rem;margin-bottom:.8rem}
 .welcome-msg h3{font-family:'Cinzel',serif;color:var(--gold);font-size:1.1rem;margin-bottom:.5rem}
@@ -98,7 +131,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--cream);over
 .suggestion{background:var(--surface);border:1px solid rgba(212,175,55,.12);padding:.4rem .9rem;border-radius:50px;font-size:.8rem;color:var(--muted);cursor:pointer;transition:all .3s}
 .suggestion:hover{border-color:var(--gold);color:var(--gold);background:rgba(212,175,55,.08)}
 
-/* Input area */
+/* Input */
 .chat-input-area{padding:.8rem 1rem;border-top:1px solid rgba(212,175,55,.1);backdrop-filter:blur(15px);background:rgba(13,6,24,.7);flex-shrink:0}
 .input-row{display:flex;gap:.5rem;align-items:flex-end}
 .chat-input{flex:1;background:var(--surface);border:1px solid rgba(212,175,55,.15);border-radius:var(--radius);padding:.7rem 1rem;color:var(--cream);font-family:'Inter',sans-serif;font-size:.92rem;outline:none;resize:none;min-height:42px;max-height:120px;transition:border-color .3s;line-height:1.5}
@@ -107,8 +140,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--cream);over
 .send-btn{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold-light));border:none;color:var(--bg);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.1rem;transition:all .3s;flex-shrink:0}
 .send-btn:hover{transform:scale(1.08);box-shadow:0 4px 16px rgba(212,175,55,.3)}
 .send-btn:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none}
-
-/* Response mode toggle */
 .response-toggle{display:flex;gap:.4rem;margin-bottom:.5rem}
 .toggle-btn{padding:.3rem .7rem;border-radius:50px;font-size:.75rem;font-weight:500;border:1px solid rgba(212,175,55,.15);background:transparent;color:var(--muted);cursor:pointer;transition:all .3s;font-family:'Inter',sans-serif}
 .toggle-btn.active{background:rgba(212,175,55,.12);border-color:var(--gold);color:var(--gold)}
@@ -117,30 +148,14 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--cream);over
 /* Disclaimer */
 .disclaimer{text-align:center;padding:.4rem;font-size:.65rem;color:var(--muted2);flex-shrink:0;background:rgba(13,6,24,.5)}
 
-/* Typing caret */
-.msg-bubble.streaming::after{content:'▊';animation:blink-caret .8s steps(2) infinite;color:var(--gold);font-weight:300;margin-left:1px}
-@keyframes blink-caret{0%,100%{opacity:1}50%{opacity:0}}
-
-/* Per-message cost footer */
-.msg-cost{font-size:.65rem;color:var(--muted2);padding:.15rem .3rem;opacity:0;transition:opacity .4s ease;display:flex;gap:.6rem;align-items:center}
-.msg-cost.visible{opacity:.7}
-
-/* Credit display in header */
-.credit-display{display:flex;gap:.4rem;margin-left:.5rem;flex-shrink:0}
-.credit-item{font-size:.6rem;color:var(--muted);background:var(--surface);padding:.15rem .45rem;border-radius:50px;border:1px solid rgba(212,175,55,.08);white-space:nowrap;transition:color .3s}
-.credit-item.warn{color:#f59e0b}
-.credit-item.danger{color:#ef4444}
-
 /* Mobile */
-@media(max-width:640px){
+@media(max-width:768px){
+  .chat-sidebar{display:none}
   .chat-header{padding:.6rem 1rem;flex-wrap:wrap}
   .chat-messages{padding:1rem .7rem}
   .chat-input-area{padding:.6rem .7rem}
   .message{max-width:90%}
-  .suggestions{gap:.3rem}
-  .suggestion{font-size:.75rem;padding:.3rem .7rem}
   .credit-display{order:10;width:100%;justify-content:center;margin:0;margin-top:.3rem}
-  .ai-badge{margin-left:auto}
 }
 </style>
 </head>
@@ -148,538 +163,85 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--cream);over
 
 <div class="bg-glow"></div>
 
-<!-- PASSWORD SCREEN -->
-<div class="password-screen" id="passwordScreen">
+<!-- AUTH SCREEN -->
+<div class="auth-screen" id="authScreen">
   <div class="logo-icon">🔮</div>
   <h1>AI Zdenka</h1>
-  <p>Toto je soukromá ukázka AI asistentky Zdenky Filipové. Pro přístup zadejte heslo.</p>
-  <div class="password-input-wrap">
-    <input type="password" class="password-input" id="passwordInput" placeholder="Zadejte heslo..." autocomplete="off">
-    <button class="btn-enter" id="passwordBtn" onclick="checkPassword()">Vstoupit</button>
+  <p>AI asistentka inspirovaná Zdenkou Filipovou. Přihlaste se pro duchovní vedení a podporu.</p>
+  <div class="auth-form">
+    <div id="registerFields" class="hidden">
+      <input type="text" class="auth-input" id="authName" placeholder="Vaše jméno (volitelné)" autocomplete="name" style="margin-bottom:.5rem">
+    </div>
+    <input type="email" class="auth-input" id="authEmail" placeholder="Email" autocomplete="email">
+    <input type="password" class="auth-input" id="authPassword" placeholder="Heslo" autocomplete="current-password">
+    <button class="btn-enter" id="loginBtn" onclick="handleLogin()">Přihlásit se</button>
+    <button class="btn-enter hidden" id="registerBtn" onclick="handleRegister()">Registrovat se</button>
+    <div class="auth-error" id="authError"></div>
+    <button class="auth-link" id="authToggle" onclick="toggleAuthMode()">Nemáte účet? Registrovat se</button>
+    <button class="auth-link" onclick="handleForgotPassword()">Zapomněli jste heslo?</button>
   </div>
-  <div class="password-error" id="passwordError"></div>
 </div>
 
 <!-- CHAT APP -->
 <div class="chat-app hidden" id="chatApp">
-  <div class="chat-header">
-    <div class="chat-avatar">🔮</div>
-    <div class="chat-header-info">
-      <h2>Zdenka Filipová</h2>
-      <p><span class="online-dot"></span> AI Duchovní průvodkyně</p>
+  <!-- Sidebar -->
+  <div class="chat-sidebar">
+    <div class="sidebar-header">
+      <button class="btn-new-conv" onclick="startNewConversation()">✦ Nová konzultace</button>
     </div>
-    <span class="ai-badge">✦ AI DEMO</span>
-    <div class="credit-display" id="creditDisplay">
-      <span class="credit-item" id="elCredits">🔊 Hlas: —</span>
-      <span class="credit-item" id="anthropicCredits">🔤 Claude: —</span>
+    <div id="conversationList"></div>
+    <div class="sidebar-footer">
+      <span class="user-email" id="userName"></span>
+      <button class="btn-logout" onclick="handleLogout()">Odhlásit</button>
     </div>
   </div>
 
-  <div class="chat-messages" id="chatMessages">
-    <div class="welcome-msg">
-      <div class="icon">✨</div>
-      <h3>Vítejte u AI Zdenky</h3>
-      <p>Jsem AI asistentka inspirovaná Zdenkou Filipovou. Mohu vám poskytnout duchovní vedení a podporu.</p>
-      <div class="suggestions">
-        <div class="suggestion" onclick="sendSuggestion(this)">Jak mohu změnit svůj život?</div>
-        <div class="suggestion" onclick="sendSuggestion(this)">Potřebuji radu ohledně vztahu</div>
-        <div class="suggestion" onclick="sendSuggestion(this)">Cítím se ztracená, co mi poradíte?</div>
-        <div class="suggestion" onclick="sendSuggestion(this)">Jak najít vnitřní klid?</div>
+  <!-- Main -->
+  <div class="chat-main">
+    <div class="chat-header">
+      <div class="chat-avatar">🔮</div>
+      <div class="chat-header-info">
+        <h2>Zdenka Filipová</h2>
+        <p><span class="online-dot"></span> AI Duchovní průvodkyně</p>
+      </div>
+      <span class="ai-badge">✦ AI</span>
+      <div class="credit-display" id="creditDisplay">
+        <span class="credit-item" id="elCredits">🔊 Hlas: —</span>
+        <span class="credit-item" id="anthropicCredits">🔤 Claude: —</span>
       </div>
     </div>
-  </div>
 
-  <div class="disclaimer">
-    ⚠️ Toto je AI — odpovědi jsou generovány počítačem. Nenahrazuje lékařskou ani psychologickou péči.
-  </div>
-
-  <div class="chat-input-area">
-    <div class="response-toggle">
-      <button class="toggle-btn active" id="toggleText" onclick="setMode('text')">✉️ Text</button>
-      <button class="toggle-btn" id="toggleAudio" onclick="setMode('audio')">🔊 Text + Hlas</button>
+    <div class="chat-messages" id="chatMessages">
+      <div class="welcome-msg">
+        <div class="icon">✨</div>
+        <h3>Vítejte u AI Zdenky</h3>
+        <p>Jsem AI asistentka inspirovaná Zdenkou Filipovou. Mohu vám poskytnout duchovní vedení a podporu.</p>
+        <div class="suggestions">
+          <div class="suggestion" onclick="sendSuggestion(this)">Jak mohu změnit svůj život?</div>
+          <div class="suggestion" onclick="sendSuggestion(this)">Potřebuji radu ohledně vztahu</div>
+          <div class="suggestion" onclick="sendSuggestion(this)">Cítím se ztracená, co mi poradíte?</div>
+          <div class="suggestion" onclick="sendSuggestion(this)">Jak najít vnitřní klid?</div>
+        </div>
+      </div>
     </div>
-    <div class="input-row">
-      <textarea class="chat-input" id="chatInput" placeholder="Napište svou otázku..." rows="1" onkeydown="handleKeyDown(event)"></textarea>
-      <button class="send-btn" id="sendBtn" onclick="sendMessage()" title="Odeslat">➤</button>
+
+    <div class="disclaimer">
+      ⚠️ Toto je AI — odpovědi jsou generovány počítačem. Nenahrazuje lékařskou ani psychologickou péči.
+    </div>
+
+    <div class="chat-input-area">
+      <div class="response-toggle">
+        <button class="toggle-btn active" id="toggleText" onclick="setMode('text')">✉️ Text</button>
+        <button class="toggle-btn" id="toggleAudio" onclick="setMode('audio')">🔊 Text + Hlas</button>
+      </div>
+      <div class="input-row">
+        <textarea class="chat-input" id="chatInput" placeholder="Napište svou otázku..." rows="1" onkeydown="handleKeyDown(event)"></textarea>
+        <button class="send-btn" id="sendBtn" onclick="sendMessage()" title="Odeslat">➤</button>
+      </div>
     </div>
   </div>
 </div>
 
-<script>
-'use strict';
-
-// ============ CONFIG ============
-const API_BASE = 'https://ai-api-amber.vercel.app';
-
-let authToken = '';
-let responseMode = 'text';
-let conversationHistory = [];
-let isGenerating = false;
-
-// ============ SESSION TRACKING ============
-const sessionStats = {
-  totalInputTokens: 0, totalOutputTokens: 0, totalTtsChars: 0, messageCount: 0,
-  anthropicStartBalance: null, // set from /api/credits
-};
-
-function updateSessionDisplay() {
-  // Estimate Anthropic cost: Sonnet 4.6 = $3/M input + $15/M output
-  const inputCost = (sessionStats.totalInputTokens / 1_000_000) * 3;
-  const outputCost = (sessionStats.totalOutputTokens / 1_000_000) * 15;
-  const sessionCost = inputCost + outputCost;
-  const el = document.getElementById('anthropicCredits');
-  if (el && sessionStats.anthropicStartBalance !== null) {
-    const remaining = Math.max(0, sessionStats.anthropicStartBalance - sessionCost);
-    el.textContent = `🔤 Claude: $${remaining.toFixed(2)} / $${sessionStats.anthropicStartBalance.toFixed(2)}`;
-    const pct = sessionStats.anthropicStartBalance > 0 ? (remaining / sessionStats.anthropicStartBalance) * 100 : 0;
-    el.classList.toggle('warn', pct < 25 && pct >= 10);
-    el.classList.toggle('danger', pct < 10);
-  } else if (el) {
-    const totalTokens = sessionStats.totalInputTokens + sessionStats.totalOutputTokens;
-    el.textContent = `🔤 Claude: ${totalTokens.toLocaleString('cs-CZ')} tokenů (~$${sessionCost.toFixed(3)})`;
-  }
-}
-
-// ============ TYPEWRITER ENGINE ============
-const typewriterState = { buffer: '', rendered: '', animFrameId: null, bubbleEl: null };
-
-function typewriterAppend(text) {
-  typewriterState.buffer += text;
-  if (!typewriterState.animFrameId) {
-    typewriterState.animFrameId = requestAnimationFrame(typewriterDrain);
-  }
-}
-
-function typewriterDrain() {
-  const state = typewriterState;
-  if (state.buffer.length === 0) {
-    state.animFrameId = null;
-    return;
-  }
-  const backlog = state.buffer.length;
-  const chunkSize = backlog > 200 ? 150 : backlog > 50 ? 8 : 2;
-  const chunk = state.buffer.slice(0, chunkSize);
-  state.buffer = state.buffer.slice(chunkSize);
-  state.rendered += chunk;
-
-  if (state.bubbleEl) {
-    state.bubbleEl.textContent = state.rendered;
-    const container = document.getElementById('chatMessages');
-    container.scrollTop = container.scrollHeight;
-  }
-  state.animFrameId = requestAnimationFrame(typewriterDrain);
-}
-
-function typewriterReset() {
-  if (typewriterState.animFrameId) cancelAnimationFrame(typewriterState.animFrameId);
-  typewriterState.buffer = '';
-  typewriterState.rendered = '';
-  typewriterState.animFrameId = null;
-  typewriterState.bubbleEl = null;
-}
-
-function typewriterFlush() {
-  if (typewriterState.animFrameId) cancelAnimationFrame(typewriterState.animFrameId);
-  typewriterState.rendered += typewriterState.buffer;
-  typewriterState.buffer = '';
-  typewriterState.animFrameId = null;
-  if (typewriterState.bubbleEl) {
-    typewriterState.bubbleEl.textContent = typewriterState.rendered;
-    typewriterState.bubbleEl.classList.remove('streaming');
-  }
-}
-
-// ============ PASSWORD ============
-const passwordInput = document.getElementById('passwordInput');
-passwordInput.addEventListener('keydown', (event) => {
-  if (event.key === 'Enter') checkPassword();
-});
-
-async function checkPassword() {
-  const password = passwordInput.value.trim();
-  if (!password) return;
-
-  const btn = document.getElementById('passwordBtn');
-  const errorEl = document.getElementById('passwordError');
-  btn.disabled = true;
-  btn.textContent = '⏳';
-  errorEl.textContent = '';
-
-  try {
-    const response = await fetch(`${API_BASE}/api/verify`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${password}`,
-      },
-    });
-
-    if (response.ok) {
-      authToken = password;
-      document.getElementById('passwordScreen').classList.add('hidden');
-      document.getElementById('chatApp').classList.remove('hidden');
-      document.getElementById('chatInput').focus();
-      fetchCredits(); // Load credit balance after login
-    } else {
-      errorEl.textContent = 'Neplatné heslo. Zkuste to prosím znovu.';
-    }
-  } catch (networkError) {
-    errorEl.textContent = 'Nelze se připojit k serveru. Zkuste to za chvíli.';
-  }
-
-  btn.disabled = false;
-  btn.textContent = 'Vstoupit';
-}
-
-// ============ CREDITS ============
-async function fetchCredits() {
-  try {
-    const response = await fetch(`${API_BASE}/api/credits`, {
-      method: 'GET',
-      headers: { 'Authorization': `Bearer ${authToken}` },
-    });
-    if (!response.ok) return;
-    const data = await response.json();
-    if (data.elevenlabs && !data.elevenlabs.error) {
-      const remaining = data.elevenlabs.remaining;
-      const limit = data.elevenlabs.characterLimit;
-      const pct = limit > 0 ? (remaining / limit) * 100 : 0;
-      const elEl = document.getElementById('elCredits');
-      elEl.textContent = `🔊 Hlas: ${remaining.toLocaleString('cs-CZ')} / ${limit.toLocaleString('cs-CZ')} znaků`;
-      elEl.classList.toggle('warn', pct < 25 && pct >= 10);
-      elEl.classList.toggle('danger', pct < 10);
-    }
-    // Anthropic balance from server config
-    if (data.anthropic && typeof data.anthropic.balance === 'number') {
-      sessionStats.anthropicStartBalance = data.anthropic.balance;
-      const el = document.getElementById('anthropicCredits');
-      el.textContent = `🔤 Claude: $${data.anthropic.balance.toFixed(2)} / $${data.anthropic.balance.toFixed(2)}`;
-    }
-  } catch (fetchError) {
-    console.error('Credits fetch error:', fetchError);
-  }
-}
-
-// ============ RESPONSE MODE ============
-function setMode(mode) {
-  responseMode = mode;
-  document.getElementById('toggleText').classList.toggle('active', mode === 'text');
-  document.getElementById('toggleAudio').classList.toggle('active', mode === 'audio');
-}
-
-// ============ CHAT ============
-function sendSuggestion(element) {
-  const text = element.textContent;
-  document.getElementById('chatInput').value = text;
-  sendMessage();
-}
-
-function handleKeyDown(event) {
-  if (event.key === 'Enter' && !event.shiftKey) {
-    event.preventDefault();
-    sendMessage();
-  }
-}
-
-function autoResize(textarea) {
-  textarea.style.height = 'auto';
-  textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
-}
-
-document.getElementById('chatInput').addEventListener('input', function() {
-  autoResize(this);
-});
-
-function formatTime() {
-  const now = new Date();
-  return now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
-}
-
-function addMessage(role, content, withAudio = false) {
-  const messagesContainer = document.getElementById('chatMessages');
-
-  // Remove welcome message if present
-  const welcome = messagesContainer.querySelector('.welcome-msg');
-  if (welcome) welcome.remove();
-
-  const messageDiv = document.createElement('div');
-  messageDiv.className = `message ${role}`;
-
-  const bubbleDiv = document.createElement('div');
-  bubbleDiv.className = 'msg-bubble';
-  bubbleDiv.textContent = content;
-
-  const timeDiv = document.createElement('div');
-  timeDiv.className = 'msg-time';
-  timeDiv.textContent = formatTime();
-
-  messageDiv.appendChild(bubbleDiv);
-
-  if (withAudio && role === 'assistant') {
-    const audioContainer = document.createElement('div');
-    audioContainer.id = 'audioContainer-' + Date.now();
-    messageDiv.appendChild(audioContainer);
-  }
-
-  messageDiv.appendChild(timeDiv);
-  messagesContainer.appendChild(messageDiv);
-  messagesContainer.scrollTop = messagesContainer.scrollHeight;
-
-  return messageDiv;
-}
-
-function showTyping() {
-  const messagesContainer = document.getElementById('chatMessages');
-  const typingDiv = document.createElement('div');
-  typingDiv.className = 'message assistant';
-  typingDiv.id = 'typingIndicator';
-  typingDiv.innerHTML = '<div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
-  messagesContainer.appendChild(typingDiv);
-  messagesContainer.scrollTop = messagesContainer.scrollHeight;
-}
-
-function hideTyping() {
-  const typing = document.getElementById('typingIndicator');
-  if (typing) typing.remove();
-}
-
-async function sendMessage() {
-  const input = document.getElementById('chatInput');
-  const userText = input.value.trim();
-  if (!userText || isGenerating) return;
-
-  isGenerating = true;
-  document.getElementById('sendBtn').disabled = true;
-
-  // Add user message
-  addMessage('user', userText);
-  conversationHistory.push({ role: 'user', content: userText });
-
-  input.value = '';
-  autoResize(input);
-
-  showTyping();
-
-  try {
-    const response = await fetch(`${API_BASE}/api/chat`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${authToken}`,
-      },
-      body: JSON.stringify({ messages: conversationHistory }),
-    });
-
-    hideTyping();
-
-    if (response.status === 401) {
-      addMessage('assistant', '❌ Neplatné heslo. Obnovte stránku a zkuste znovu.');
-      isGenerating = false;
-      document.getElementById('sendBtn').disabled = false;
-      return;
-    }
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      addMessage('assistant', errorData.error || 'Omlouvám se, něco se pokazilo. Zkuste to prosím znovu.');
-      isGenerating = false;
-      document.getElementById('sendBtn').disabled = false;
-      return;
-    }
-
-    // Parse SSE stream with typewriter + usage tracking
-    typewriterReset();
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let assistantText = '';
-    let messageDiv = null;
-    let buffer = '';
-    let msgInputTokens = 0;
-    let msgOutputTokens = 0;
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split('\n');
-      buffer = lines.pop() || '';
-
-      for (const line of lines) {
-        if (!line.startsWith('data: ')) continue;
-        const data = line.slice(6);
-
-        if (data === '[DONE]') continue;
-
-        try {
-          const parsed = JSON.parse(data);
-
-          // Capture input tokens from message_start
-          if (parsed.type === 'message_start' && parsed.message?.usage) {
-            msgInputTokens = parsed.message.usage.input_tokens || 0;
-          }
-
-          // Capture output tokens from message_delta (cumulative)
-          if (parsed.type === 'message_delta' && parsed.usage) {
-            msgOutputTokens = parsed.usage.output_tokens || 0;
-          }
-
-          if (parsed.type === 'content_block_delta' && parsed.delta?.type === 'text_delta') {
-            const newText = parsed.delta.text;
-            assistantText += newText;
-
-            if (!messageDiv) {
-              messageDiv = addMessage('assistant', '', responseMode === 'audio');
-              const bubble = messageDiv.querySelector('.msg-bubble');
-              bubble.classList.add('streaming');
-              typewriterState.bubbleEl = bubble;
-            }
-
-            typewriterAppend(newText);
-          }
-        } catch (parseError) {
-          // Skip non-JSON lines
-        }
-      }
-    }
-
-    // Stream complete — flush typewriter and show cost
-    typewriterFlush();
-
-    if (assistantText) {
-      conversationHistory.push({ role: 'assistant', content: assistantText });
-
-      // Update session stats
-      sessionStats.totalInputTokens += msgInputTokens;
-      sessionStats.totalOutputTokens += msgOutputTokens;
-      sessionStats.messageCount++;
-      updateSessionDisplay();
-
-      // Add per-message cost footer
-      if (messageDiv && (msgInputTokens > 0 || msgOutputTokens > 0)) {
-        const costDiv = document.createElement('div');
-        costDiv.className = 'msg-cost';
-        const totalTokens = msgInputTokens + msgOutputTokens;
-        costDiv.innerHTML = `<span>🔤 ${totalTokens.toLocaleString('cs-CZ')} tokenů</span>`;
-        // Insert before the time element
-        const timeEl = messageDiv.querySelector('.msg-time');
-        messageDiv.insertBefore(costDiv, timeEl);
-        requestAnimationFrame(() => costDiv.classList.add('visible'));
-      }
-
-      // Generate audio if requested
-      if (responseMode === 'audio' && messageDiv) {
-        const audioContainer = messageDiv.querySelector('[id^="audioContainer"]');
-        if (audioContainer) {
-          const ttsChars = assistantText.length;
-          await generateAudio(assistantText, audioContainer);
-          sessionStats.totalTtsChars += ttsChars;
-
-          // Add TTS chars to cost footer
-          const costDiv = messageDiv.querySelector('.msg-cost');
-          if (costDiv) {
-            const ttsSpan = document.createElement('span');
-            ttsSpan.textContent = `🔊 ${ttsChars.toLocaleString('cs-CZ')} znaků`;
-            costDiv.appendChild(ttsSpan);
-          }
-
-          // Refresh credit display after TTS use
-          fetchCredits();
-        }
-      }
-    }
-  } catch (error) {
-    hideTyping();
-    typewriterFlush();
-    console.error('Chat error:', error);
-    addMessage('assistant', 'Zdenka potřebuje chvíli na meditaci. Zkuste to prosím za okamžik. 🙏');
-  }
-
-  isGenerating = false;
-  document.getElementById('sendBtn').disabled = false;
-  document.getElementById('chatInput').focus();
-}
-
-// ============ AUDIO ============
-async function generateAudio(text, container) {
-  container.innerHTML = '<div class="audio-loading"><div class="spinner"></div> Připravuji hlasovou odpověď...</div>';
-
-  try {
-    const response = await fetch(`${API_BASE}/api/tts`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${authToken}`,
-      },
-      body: JSON.stringify({ text }),
-    });
-
-    if (!response.ok) {
-      container.innerHTML = '<div class="audio-loading" style="color:#ef4444">❌ Hlasová odpověď není dostupná</div>';
-      return;
-    }
-
-    const audioBlob = await response.blob();
-    const audioUrl = URL.createObjectURL(audioBlob);
-    const audio = new Audio(audioUrl);
-
-    container.innerHTML = `
-      <div class="audio-player">
-        <button class="audio-btn" onclick="toggleAudioPlay(this)" data-state="paused">▶</button>
-        <div class="audio-progress"><div class="audio-progress-fill"></div></div>
-        <span class="audio-time">0:00</span>
-      </div>
-    `;
-
-    const playerEl = container.querySelector('.audio-player');
-    const progressFill = playerEl.querySelector('.audio-progress-fill');
-    const timeEl = playerEl.querySelector('.audio-time');
-    const btn = playerEl.querySelector('.audio-btn');
-
-    btn._audio = audio;
-
-    audio.addEventListener('timeupdate', () => {
-      if (audio.duration) {
-        const pct = (audio.currentTime / audio.duration) * 100;
-        progressFill.style.width = pct + '%';
-        const remaining = audio.duration - audio.currentTime;
-        const mins = Math.floor(remaining / 60);
-        const secs = Math.floor(remaining % 60);
-        timeEl.textContent = mins + ':' + secs.toString().padStart(2, '0');
-      }
-    });
-
-    audio.addEventListener('ended', () => {
-      btn.textContent = '▶';
-      btn.dataset.state = 'paused';
-      progressFill.style.width = '0%';
-    });
-
-    audio.addEventListener('loadedmetadata', () => {
-      const mins = Math.floor(audio.duration / 60);
-      const secs = Math.floor(audio.duration % 60);
-      timeEl.textContent = mins + ':' + secs.toString().padStart(2, '0');
-    });
-  } catch (error) {
-    console.error('TTS error:', error);
-    container.innerHTML = '<div class="audio-loading" style="color:#ef4444">❌ Chyba při generování hlasu</div>';
-  }
-}
-
-function toggleAudioPlay(btn) {
-  const audio = btn._audio;
-  if (!audio) return;
-
-  if (btn.dataset.state === 'paused') {
-    audio.play();
-    btn.textContent = '⏸';
-    btn.dataset.state = 'playing';
-  } else {
-    audio.pause();
-    btn.textContent = '▶';
-    btn.dataset.state = 'paused';
-  }
-}
-</script>
+<script src="app.js"></script>
 </body>
 </html>
