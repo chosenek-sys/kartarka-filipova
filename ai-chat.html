@@ -174,6 +174,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--cream);over
     </div>
     <input type="email" class="auth-input" id="authEmail" placeholder="Email" autocomplete="email">
     <input type="password" class="auth-input" id="authPassword" placeholder="Heslo" autocomplete="current-password">
+    <input type="password" class="auth-input hidden" id="authPasswordConfirm" placeholder="Zopakujte heslo" autocomplete="new-password">
     <button class="btn-enter" id="loginBtn" onclick="handleLogin()">Přihlásit se</button>
     <button class="btn-enter hidden" id="registerBtn" onclick="handleRegister()">Registrovat se</button>
     <div class="auth-error" id="authError"></div>

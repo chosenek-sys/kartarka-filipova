@@ -63,9 +63,11 @@ async function handleLogin() {
 async function handleRegister() {
   const email = document.getElementById('authEmail').value.trim();
   const password = document.getElementById('authPassword').value;
+  const passwordConfirm = document.getElementById('authPasswordConfirm').value;
   const name = document.getElementById('authName').value.trim();
   const errorEl = document.getElementById('authError');
   errorEl.textContent = '';
+  errorEl.style.color = '';
 
   if (!email || !password) {
     errorEl.textContent = 'Vyplňte email a heslo.';
@@ -73,6 +75,10 @@ async function handleRegister() {
   }
   if (password.length < 6) {
     errorEl.textContent = 'Heslo musí mít alespoň 6 znaků.';
+    return;
+  }
+  if (password !== passwordConfirm) {
+    errorEl.textContent = 'Hesla se neshodují.';
     return;
   }
 
@@ -122,15 +128,19 @@ function toggleAuthMode() {
   const loginBtn = document.getElementById('loginBtn');
   const registerBtn = document.getElementById('registerBtn');
   const toggleLink = document.getElementById('authToggle');
+  const confirmField = document.getElementById('authPasswordConfirm');
   const isRegister = registerFields.classList.toggle('hidden');
 
   if (!isRegister) {
     loginBtn.classList.add('hidden');
     registerBtn.classList.remove('hidden');
+    confirmField.classList.remove('hidden');
     toggleLink.textContent = 'Již máte účet? Přihlásit se';
   } else {
     loginBtn.classList.remove('hidden');
     registerBtn.classList.add('hidden');
+    confirmField.classList.add('hidden');
+    confirmField.value = '';
     toggleLink.textContent = 'Nemáte účet? Registrovat se';
   }
 }
