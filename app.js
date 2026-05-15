@@ -674,6 +674,11 @@ function addMessage(role, content, withAudio = false) {
   const messageDiv = document.createElement('div');
   messageDiv.className = `message ${role}`;
 
+  // Strip internal context (card_draw XML, --- separators) from assistant messages
+  if (role === 'assistant') {
+    content = stripInternalContext(content);
+  }
+
   // For assistant messages with card markers, render cards + narration segments
   if (role === 'assistant' && CARD_MARKER_REGEX.test(content)) {
     CARD_MARKER_REGEX.lastIndex = 0; // reset regex state
@@ -743,8 +748,18 @@ function addMessage(role, content, withAudio = false) {
 }
 
 // ============ CARD HELPERS ============
+function stripInternalContext(text) {
+  // Remove <card_draw>...</card_draw> blocks (may span multiple lines)
+  let cleaned = text.replace(/<card_draw>[\s\S]*?<\/card_draw>\s*/gi, '');
+  // Remove standalone --- separators (horizontal rules the AI may add)
+  cleaned = cleaned.replace(/^---\s*$/gm, '');
+  // Collapse excessive blank lines (3+ newlines → 2)
+  cleaned = cleaned.replace(/\n{3,}/g, '\n\n');
+  return cleaned.trim();
+}
+
 function stripCardMarkers(text) {
-  return text.replace(/\[CARD:\d+:[^\]]+\]\n?/g, '');
+  return stripInternalContext(text).replace(/\[CARD:\d+:[^\]]+\]\n?/g, '');
 }
 
 function renderHealthCard(cardId, cardName, positionIndex, preFlipped) {
