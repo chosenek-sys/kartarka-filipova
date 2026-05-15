@@ -200,3 +200,32 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
   .package-grid{grid-template-columns:1fr;gap:.6rem}
   .modal-card{padding:1.2rem}
 }
+
+/* ============ HEALTH CARDS ============ */
+.card-reading-container{display:flex;gap:1.2rem;justify-content:center;flex-wrap:wrap;margin:.8rem 0;padding:.6rem 0}
+.card-spread-label{width:100%;text-align:center;font-family:'Cinzel',serif;font-size:.85rem;color:var(--brown);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:.2rem;opacity:.7}
+.health-card{width:160px;perspective:800px;cursor:default}
+.card-position{text-align:center;font-size:.7rem;color:var(--muted);margin-bottom:.3rem;font-weight:500;letter-spacing:.5px;text-transform:uppercase}
+.card-inner{position:relative;width:100%;height:220px;transition:transform .8s cubic-bezier(.4,.2,.2,1);transform-style:preserve-3d}
+.card-flipped .card-inner{transform:rotateY(180deg)}
+.card-front,.card-back{position:absolute;inset:0;border-radius:12px;backface-visibility:hidden;overflow:hidden;box-shadow:0 4px 16px rgba(74,37,24,.15)}
+.card-front{transform:rotateY(180deg);background:var(--white);border:2px solid rgba(107,58,42,.12)}
+.card-front img{width:100%;height:100%;object-fit:cover;display:block}
+.card-front .card-fallback{display:none;width:100%;height:100%;background:linear-gradient(135deg,var(--cream),var(--bg2));align-items:center;justify-content:center;flex-direction:column;gap:.4rem;padding:.8rem}
+.card-front .card-fallback .card-fallback-icon{font-size:2.5rem;opacity:.5}
+.card-front .card-fallback .card-fallback-name{font-family:'Cinzel',serif;font-size:.75rem;color:var(--brown);text-align:center;word-break:break-word}
+.card-back{background:linear-gradient(135deg,var(--brown),var(--brown-dark));display:flex;align-items:center;justify-content:center;border:2px solid var(--brown-light)}
+.card-back::before{content:'✦';font-size:2rem;color:rgba(255,255,255,.2);animation:card-pulse 2s ease-in-out infinite}
+.card-back::after{content:'';position:absolute;inset:8px;border:1px solid rgba(255,255,255,.1);border-radius:8px}
+@keyframes card-pulse{0%,100%{opacity:.2;transform:scale(1)}50%{opacity:.4;transform:scale(1.05)}}
+.card-label{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(74,37,24,.85));padding:.6rem .5rem .4rem;text-align:center}
+.card-label-text{color:var(--white);font-family:'Cinzel',serif;font-size:.75rem;font-weight:600;letter-spacing:.5px;text-shadow:0 1px 3px rgba(0,0,0,.3)}
+.card-shimmer{position:absolute;inset:0;background:linear-gradient(105deg,transparent 40%,rgba(201,169,110,.25) 50%,transparent 60%);animation:shimmer 1.5s ease-out forwards;border-radius:12px;pointer-events:none;z-index:2}
+@keyframes shimmer{0%{transform:translateX(-100%);opacity:1}100%{transform:translateX(100%);opacity:0}}
+.card-narration{background:var(--white);border:1px solid rgba(107,58,42,.1);border-radius:var(--radius);padding:.8rem 1.1rem;font-size:.92rem;line-height:1.65;color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.04);margin-top:.4rem;border-left:3px solid var(--gold)}
+@media(max-width:600px){
+  .card-reading-container{gap:.8rem}
+  .health-card{width:130px}
+  .card-inner{height:180px}
+  .card-label-text{font-size:.65rem}
+}

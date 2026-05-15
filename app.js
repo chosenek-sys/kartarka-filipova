@@ -12,6 +12,70 @@ let conversationHistory = [];
 let isGenerating = false;
 let currentConversationId = null;
 
+// ============ HEALTH CARD DATA ============
+const CARD_IMAGE_BASE = 'https://www.zdenkafilipova.cz/wp-content/uploads/2025/09/Kreslici%E2%95%A0u-pla%E2%95%A0utno-1-kopie-';
+const CARD_DATA = {
+  1: { name: 'Anorexie', image: CARD_IMAGE_BASE + '2.webp' },
+  2: { name: 'Astma, dýchání', image: CARD_IMAGE_BASE + '3.webp' },
+  3: { name: 'Bolesti', image: CARD_IMAGE_BASE + '4.webp' },
+  4: { name: 'Děloha', image: CARD_IMAGE_BASE + '5.webp' },
+  5: { name: 'Dětské nemoci', image: CARD_IMAGE_BASE + '6.webp' },
+  6: { name: 'Chrápání', image: CARD_IMAGE_BASE + '7.webp' },
+  7: { name: 'Chudokrevnost', image: CARD_IMAGE_BASE + '8.webp' },
+  8: { name: 'Imunitní systém', image: CARD_IMAGE_BASE + '9.webp' },
+  9: { name: 'Infarkt', image: CARD_IMAGE_BASE + '10.webp' },
+  10: { name: 'Játra', image: CARD_IMAGE_BASE + '11.webp' },
+  11: { name: 'Jícen', image: CARD_IMAGE_BASE + '12.webp' },
+  12: { name: 'Klouby', image: CARD_IMAGE_BASE + '13.webp' },
+  13: { name: 'Kolena', image: CARD_IMAGE_BASE + '14.webp' },
+  14: { name: 'Konečník', image: CARD_IMAGE_BASE + '15.webp' },
+  15: { name: 'Krev', image: CARD_IMAGE_BASE + '16.webp' },
+  16: { name: 'Křeče', image: CARD_IMAGE_BASE + '17.webp' },
+  17: { name: 'Kůže', image: CARD_IMAGE_BASE + '18.webp' },
+  18: { name: 'Kvasinky', image: CARD_IMAGE_BASE + '19.webp' },
+  19: { name: 'Ledviny', image: CARD_IMAGE_BASE + '20.webp' },
+  20: { name: 'Lokty', image: CARD_IMAGE_BASE + '21.webp' },
+  21: { name: 'Mandle', image: CARD_IMAGE_BASE + '23.webp' },
+  22: { name: 'Močové cesty', image: null },
+  23: { name: 'Cukrovka', image: CARD_IMAGE_BASE + '24.webp' },
+  24: { name: 'Mozková mrtvice', image: CARD_IMAGE_BASE + '25.webp' },
+  25: { name: 'Nadváha', image: CARD_IMAGE_BASE + '26.webp' },
+  26: { name: 'Nehty', image: CARD_IMAGE_BASE + '27.webp' },
+  27: { name: 'Nechuť k jídlu', image: CARD_IMAGE_BASE + '28.webp' },
+  28: { name: 'Nohy', image: CARD_IMAGE_BASE + '29.webp' },
+  29: { name: 'Oči', image: CARD_IMAGE_BASE + '30.webp' },
+  30: { name: 'Pálení žáhy', image: CARD_IMAGE_BASE + '31.webp' },
+  31: { name: 'Plíce', image: CARD_IMAGE_BASE + '32.webp' },
+  32: { name: 'Ploténky', image: CARD_IMAGE_BASE + '33.webp' },
+  33: { name: 'Pohlavní orgány', image: CARD_IMAGE_BASE + '34.webp' },
+  34: { name: 'Popraskané paty', image: CARD_IMAGE_BASE + '35.webp' },
+  35: { name: 'Prostata', image: CARD_IMAGE_BASE + '36.webp' },
+  36: { name: 'Rakovina', image: CARD_IMAGE_BASE + '37.webp' },
+  37: { name: 'Revma', image: CARD_IMAGE_BASE + '38.webp' },
+  38: { name: 'Ruce', image: CARD_IMAGE_BASE + '39.webp' },
+  39: { name: 'Slepé střevo', image: CARD_IMAGE_BASE + '40.webp' },
+  40: { name: 'Slezina', image: CARD_IMAGE_BASE + '41.webp' },
+  41: { name: 'Slinivka', image: CARD_IMAGE_BASE + '42.webp' },
+  42: { name: 'Srdce', image: CARD_IMAGE_BASE + '43.webp' },
+  43: { name: 'Střevo', image: CARD_IMAGE_BASE + '44.webp' },
+  44: { name: 'Štítná žláza', image: CARD_IMAGE_BASE + '45.webp' },
+  45: { name: 'Uši', image: CARD_IMAGE_BASE + '46.webp' },
+  46: { name: 'Úraz / Zranění', image: CARD_IMAGE_BASE + '47.webp' },
+  47: { name: 'Vajíčka', image: CARD_IMAGE_BASE + '48.webp' },
+  48: { name: 'Vlasy / Plešatost', image: CARD_IMAGE_BASE + '49.webp' },
+  49: { name: 'Vrozené vady', image: CARD_IMAGE_BASE + '50.webp' },
+  50: { name: 'Záda / Páteř', image: CARD_IMAGE_BASE + '51.webp' },
+  51: { name: 'Závislost', image: CARD_IMAGE_BASE + '52.webp' },
+  52: { name: 'Zuby', image: CARD_IMAGE_BASE + '53.webp' },
+  53: { name: 'Žaludek', image: CARD_IMAGE_BASE + '55.webp' },
+  54: { name: 'Žíly a žilní systém', image: null },
+  55: { name: 'Žlučník', image: CARD_IMAGE_BASE + '55.webp' },
+  56: { name: 'Žlázy', image: null },
+  57: { name: 'Žučník', image: null },
+};
+const CARD_POSITIONS = ['Minulost', 'Přítomnost', 'Budoucnost'];
+const CARD_MARKER_REGEX = /\[CARD:(\d+):([^\]]+)\]/g;
+
 // ============ UUID GENERATION ============
 function generateUUID() {
   return crypto.randomUUID();
@@ -343,6 +407,7 @@ function updateTitleBar(title) {
 }
 
 function addReplayButton(messageDiv, text) {
+  const cleanText = stripCardMarkers(text);
   const btn = document.createElement('button');
   btn.className = 'btn-replay';
   btn.innerHTML = '🔊 Přehrát hlasem';
@@ -352,7 +417,7 @@ function addReplayButton(messageDiv, text) {
     const audioContainer = document.createElement('div');
     audioContainer.id = 'audioContainer-' + Date.now();
     messageDiv.insertBefore(audioContainer, messageDiv.querySelector('.msg-time'));
-    await generateAudio(text, audioContainer);
+    await generateAudio(cleanText, audioContainer);
     btn.remove();
   };
   const timeEl = messageDiv.querySelector('.msg-time');
@@ -396,6 +461,7 @@ function showWelcome() {
         <div class="suggestion" onclick="sendSuggestion(this)">Potřebuji radu ohledně vztahu</div>
         <div class="suggestion" onclick="sendSuggestion(this)">Cítím se ztracená, co mi poradíte?</div>
         <div class="suggestion" onclick="sendSuggestion(this)">Jak najít vnitřní klid?</div>
+        <div class="suggestion" onclick="sendSuggestion(this)">🃏 Vylož mi karty zdraví</div>
       </div>
     </div>`;
 }
@@ -608,15 +674,61 @@ function addMessage(role, content, withAudio = false) {
   const messageDiv = document.createElement('div');
   messageDiv.className = `message ${role}`;
 
-  const bubbleDiv = document.createElement('div');
-  bubbleDiv.className = 'msg-bubble';
-  bubbleDiv.textContent = content; // textContent prevents XSS
+  // For assistant messages with card markers, render cards + narration segments
+  if (role === 'assistant' && CARD_MARKER_REGEX.test(content)) {
+    CARD_MARKER_REGEX.lastIndex = 0; // reset regex state
+    const segments = content.split(CARD_MARKER_REGEX);
+    const markers = [...content.matchAll(CARD_MARKER_REGEX)];
+
+    // Text before first card (if any)
+    const preText = segments[0].trim();
+    if (preText) {
+      const preBubble = document.createElement('div');
+      preBubble.className = 'msg-bubble';
+      preBubble.textContent = preText;
+      messageDiv.appendChild(preBubble);
+    }
+
+    // Render card spread container
+    if (markers.length > 0) {
+      const cardContainer = document.createElement('div');
+      cardContainer.className = 'card-reading-container';
+      const spreadLabel = document.createElement('div');
+      spreadLabel.className = 'card-spread-label';
+      spreadLabel.textContent = '✦ Karty zdraví ✦';
+      cardContainer.appendChild(spreadLabel);
+
+      markers.forEach((match, index) => {
+        const cardId = parseInt(match[1], 10);
+        const cardName = match[2];
+        const cardEl = renderHealthCard(cardId, cardName, index, true);
+        cardContainer.appendChild(cardEl);
+      });
+      messageDiv.appendChild(cardContainer);
+    }
+
+    // Narration text segments (text after each card marker)
+    // segments layout: [pre, id1, name1, text1, id2, name2, text2, ...]
+    for (let i = 0; i < markers.length; i++) {
+      const narrationIdx = 1 + i * 3 + 2; // skip id + name groups
+      const narration = (segments[narrationIdx] || '').trim();
+      if (narration) {
+        const narDiv = document.createElement('div');
+        narDiv.className = 'card-narration';
+        narDiv.textContent = narration;
+        messageDiv.appendChild(narDiv);
+      }
+    }
+  } else {
+    const bubbleDiv = document.createElement('div');
+    bubbleDiv.className = 'msg-bubble';
+    bubbleDiv.textContent = content; // textContent prevents XSS
+    messageDiv.appendChild(bubbleDiv);
+  }
 
   const timeDiv = document.createElement('div');
   timeDiv.className = 'msg-time';
   timeDiv.textContent = formatTime();
-
-  messageDiv.appendChild(bubbleDiv);
 
   if (withAudio && role === 'assistant') {
     const audioContainer = document.createElement('div');
@@ -628,6 +740,82 @@ function addMessage(role, content, withAudio = false) {
   container.appendChild(messageDiv);
   container.scrollTop = container.scrollHeight;
   return messageDiv;
+}
+
+// ============ CARD HELPERS ============
+function stripCardMarkers(text) {
+  return text.replace(/\[CARD:\d+:[^\]]+\]\n?/g, '');
+}
+
+function renderHealthCard(cardId, cardName, positionIndex, preFlipped) {
+  const card = document.createElement('div');
+  card.className = 'health-card';
+  if (preFlipped) card.classList.add('card-flipped');
+
+  const posLabel = document.createElement('div');
+  posLabel.className = 'card-position';
+  posLabel.textContent = CARD_POSITIONS[positionIndex] || '';
+  card.appendChild(posLabel);
+
+  const inner = document.createElement('div');
+  inner.className = 'card-inner';
+
+  // Front face (shown after flip)
+  const front = document.createElement('div');
+  front.className = 'card-front';
+
+  const cardData = CARD_DATA[cardId];
+  if (cardData && cardData.image) {
+    const img = document.createElement('img');
+    img.src = cardData.image;
+    img.alt = cardName;
+    img.loading = 'lazy';
+    img.onerror = function() {
+      this.style.display = 'none';
+      this.nextElementSibling.style.display = 'flex';
+    };
+    front.appendChild(img);
+  }
+
+  // Fallback (always present, hidden by default unless image fails)
+  const fallback = document.createElement('div');
+  fallback.className = 'card-fallback';
+  if (!cardData || !cardData.image) fallback.style.display = 'flex';
+  const fallbackIcon = document.createElement('div');
+  fallbackIcon.className = 'card-fallback-icon';
+  fallbackIcon.textContent = '🃏';
+  const fallbackName = document.createElement('div');
+  fallbackName.className = 'card-fallback-name';
+  fallbackName.textContent = cardName; // textContent = XSS safe
+  fallback.appendChild(fallbackIcon);
+  fallback.appendChild(fallbackName);
+  front.appendChild(fallback);
+
+  // Label overlay
+  const label = document.createElement('div');
+  label.className = 'card-label';
+  const labelText = document.createElement('div');
+  labelText.className = 'card-label-text';
+  labelText.textContent = cardName; // textContent = XSS safe
+  label.appendChild(labelText);
+  front.appendChild(label);
+
+  // Shimmer effect on reveal
+  if (preFlipped) {
+    const shimmer = document.createElement('div');
+    shimmer.className = 'card-shimmer';
+    front.appendChild(shimmer);
+  }
+
+  // Back face (shown initially)
+  const back = document.createElement('div');
+  back.className = 'card-back';
+
+  inner.appendChild(front);
+  inner.appendChild(back);
+  card.appendChild(inner);
+
+  return card;
 }
 
 function showTyping() {
@@ -745,6 +933,8 @@ async function sendMessage() {
     let buffer = '';
     let msgInputTokens = 0;
     let msgOutputTokens = 0;
+    let cardMarkerBuffer = '';
+    let cardRevealCount = 0;
 
     while (true) {
       const { done, value } = await reader.read();
@@ -776,12 +966,94 @@ async function sendMessage() {
               bubble.classList.add('streaming');
               typewriterState.bubbleEl = bubble;
             }
-            typewriterAppend(newText);
+            // Card marker lookahead buffer
+            cardMarkerBuffer += newText;
+            // Process the buffer for complete markers or safe text
+            let safeText = '';
+            while (cardMarkerBuffer.length > 0) {
+              const bracketIdx = cardMarkerBuffer.indexOf('[');
+              if (bracketIdx === -1) {
+                // No bracket — all text is safe to render
+                safeText += cardMarkerBuffer;
+                cardMarkerBuffer = '';
+              } else if (bracketIdx > 0) {
+                // Text before the bracket is safe
+                safeText += cardMarkerBuffer.slice(0, bracketIdx);
+                cardMarkerBuffer = cardMarkerBuffer.slice(bracketIdx);
+              } else {
+                // Buffer starts with '['
+                const closeBracketIdx = cardMarkerBuffer.indexOf(']');
+                if (closeBracketIdx === -1) {
+                  // Incomplete — wait for more data (unless buffer is huge)
+                  if (cardMarkerBuffer.length > 60) {
+                    // Not a marker, flush as text
+                    safeText += cardMarkerBuffer;
+                    cardMarkerBuffer = '';
+                  }
+                  break;
+                }
+                // Check if it's a card marker
+                const candidate = cardMarkerBuffer.slice(0, closeBracketIdx + 1);
+                const cardMatch = candidate.match(/^\[CARD:(\d+):([^\]]+)\]$/);
+                if (cardMatch) {
+                  const cardId = parseInt(cardMatch[1], 10);
+                  const cardName = cardMatch[2];
+                  // Flush any pending safe text first
+                  if (safeText) {
+                    typewriterAppend(safeText);
+                    safeText = '';
+                  }
+                  // Flush typewriter before injecting card
+                  typewriterFlush();
+                  // Render the card component
+                  const posIdx = cardRevealCount++;
+                  if (posIdx === 0) {
+                    // Create card container before first card
+                    const cardContainer = document.createElement('div');
+                    cardContainer.className = 'card-reading-container';
+                    cardContainer.id = 'cardSpread-' + Date.now();
+                    const spreadLabel = document.createElement('div');
+                    spreadLabel.className = 'card-spread-label';
+                    spreadLabel.textContent = '✦ Karty zdraví ✦';
+                    cardContainer.appendChild(spreadLabel);
+                    const timeEl = messageDiv.querySelector('.msg-time');
+                    messageDiv.insertBefore(cardContainer, timeEl);
+                  }
+                  const cardContainer = messageDiv.querySelector('.card-reading-container');
+                  const cardEl = renderHealthCard(cardId, cardName, posIdx, false);
+                  cardContainer.appendChild(cardEl);
+                  // Animate flip after delay
+                  setTimeout(() => {
+                    cardEl.classList.add('card-flipped');
+                  }, 600 + posIdx * 400);
+                  // Create new text bubble for narration after the card container
+                  const newBubble = document.createElement('div');
+                  newBubble.className = 'card-narration streaming';
+                  const timeEl2 = messageDiv.querySelector('.msg-time');
+                  messageDiv.insertBefore(newBubble, timeEl2);
+                  typewriterState.bubbleEl = newBubble;
+                  typewriterState.rendered = '';
+                  typewriterState.buffer = '';
+                } else {
+                  // Not a card marker — flush the bracketed text
+                  safeText += candidate;
+                }
+                cardMarkerBuffer = cardMarkerBuffer.slice(closeBracketIdx + 1);
+              }
+            }
+            if (safeText) {
+              typewriterAppend(safeText);
+            }
           }
         } catch (parseError) { /* skip */ }
       }
     }
 
+    // Flush any remaining card marker buffer as plain text
+    if (cardMarkerBuffer) {
+      typewriterAppend(cardMarkerBuffer);
+      cardMarkerBuffer = '';
+    }
     typewriterFlush();
 
     if (assistantText) {
@@ -810,8 +1082,9 @@ async function sendMessage() {
       if (responseMode === 'audio' && messageDiv) {
         const audioContainer = messageDiv.querySelector('[id^="audioContainer"]');
         if (audioContainer) {
-          await generateAudio(assistantText, audioContainer);
-          sessionStats.totalTtsChars += assistantText.length;
+          const ttsText = stripCardMarkers(assistantText);
+          await generateAudio(ttsText, audioContainer);
+          sessionStats.totalTtsChars += ttsText.length;
           const costDiv = messageDiv.querySelector('.msg-cost');
           if (costDiv) {
             const ttsSpan = document.createElement('span');
@@ -945,5 +1218,8 @@ window.handleForgotPassword = handleForgotPassword;
 window.toggleAuthMode = toggleAuthMode;
 window.toggleAudioPlay = toggleAudioPlay;
 window.startNewConversation = startNewConversation;
+window.openPurchaseModal = openPurchaseModal;
+window.closePurchaseModal = closePurchaseModal;
+window.purchaseCredits = purchaseCredits;
 
 initAuth();
