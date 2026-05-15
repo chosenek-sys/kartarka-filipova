@@ -96,7 +96,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
 @keyframes msg-in{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 .message.user{align-self:flex-end}
 .message.assistant{align-self:flex-start}
-.msg-bubble{padding:.8rem 1.1rem;border-radius:var(--radius);font-size:.92rem;line-height:1.65;word-wrap:break-word}
+.msg-bubble{padding:.8rem 1.1rem;border-radius:var(--radius);font-size:.92rem;line-height:1.65;word-wrap:break-word;white-space:pre-wrap}
 .user .msg-bubble{background:linear-gradient(135deg,rgba(107,58,42,.12),rgba(107,58,42,.06));border:1px solid rgba(107,58,42,.15);border-bottom-right-radius:4px;color:var(--text)}
 .assistant .msg-bubble{background:var(--white);border:1px solid rgba(107,58,42,.1);border-bottom-left-radius:4px;color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.04)}
 .msg-time{font-size:.7rem;color:var(--muted2);padding:0 .3rem}
