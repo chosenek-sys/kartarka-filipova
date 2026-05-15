@@ -200,8 +200,7 @@ function showAuthScreen() {
   sessionStats.totalOutputTokens = 0;
   sessionStats.totalTtsChars = 0;
   sessionStats.messageCount = 0;
-  sessionStats.anthropicBudget = null;
-  sessionStats.anthropicRemaining = null;
+  sessionStats.creditBalance = null;
 
   // Reset auth form
   document.getElementById('authError').textContent = '';
@@ -404,17 +403,17 @@ function showWelcome() {
 // ============ SESSION TRACKING ============
 const sessionStats = {
   totalInputTokens: 0, totalOutputTokens: 0, totalTtsChars: 0, messageCount: 0,
-  anthropicBudget: null, anthropicRemaining: null,
+  creditBalance: null,
 };
 
-function updateSessionDisplay() {
-  const el = document.getElementById('anthropicCredits');
-  if (el && sessionStats.anthropicRemaining !== null) {
-    el.textContent = `🔤 Claude: $${sessionStats.anthropicRemaining.toFixed(2)} / $${sessionStats.anthropicBudget.toFixed(2)}`;
-    const pct = sessionStats.anthropicBudget > 0 ? (sessionStats.anthropicRemaining / sessionStats.anthropicBudget) * 100 : 0;
-    el.classList.toggle('warn', pct < 25 && pct >= 10);
-    el.classList.toggle('danger', pct < 10);
-  }
+function updateCreditDisplay() {
+  const el = document.getElementById('userCredits');
+  if (!el || sessionStats.creditBalance === null) return;
+  const balance = sessionStats.creditBalance;
+  el.textContent = `💎 Kredity: ${balance}`;
+  // Warn/danger thresholds based on initial 30 credits
+  el.classList.toggle('warn', balance <= 7 && balance > 3);
+  el.classList.toggle('danger', balance <= 3);
 }
 
 // ============ TYPEWRITER ENGINE ============
@@ -473,20 +472,14 @@ async function fetchCredits() {
     if (!response.ok) return;
     const data = await response.json();
 
-    if (data.elevenlabs && !data.elevenlabs.error) {
-      const remaining = data.elevenlabs.remaining;
-      const limit = data.elevenlabs.characterLimit;
-      const pct = limit > 0 ? (remaining / limit) * 100 : 0;
-      const elEl = document.getElementById('elCredits');
-      elEl.textContent = `🔊 Hlas: ${remaining.toLocaleString('cs-CZ')} / ${limit.toLocaleString('cs-CZ')} znaků`;
-      elEl.classList.toggle('warn', pct < 25 && pct >= 10);
-      elEl.classList.toggle('danger', pct < 10);
-    }
-
-    if (data.anthropic) {
-      sessionStats.anthropicBudget = data.anthropic.budget;
-      sessionStats.anthropicRemaining = data.anthropic.balance;
-      updateSessionDisplay();
+    // Virtual credit balance (primary display)
+    if (data.userCredits) {
+      sessionStats.creditBalance = data.userCredits.balance;
+      updateCreditDisplay();
+    } else {
+      // Fallback for old backend that doesn't return userCredits yet
+      const el = document.getElementById('userCredits');
+      if (el) el.textContent = '💎 Kredity: —';
     }
   } catch (err) {
     console.error('Credits fetch error:', err);
@@ -626,6 +619,16 @@ async function sendMessage() {
       return;
     }
 
+    if (response.status === 402) {
+      const errData = await response.json().catch(() => ({}));
+      addMessage('assistant', errData.error || '💎 Nemáte dostatek kreditů. Kontaktujte nás pro doplnění.');
+      sessionStats.creditBalance = 0;
+      updateCreditDisplay();
+      isGenerating = false;
+      document.getElementById('sendBtn').disabled = false;
+      return;
+    }
+
     if (!response.ok) {
       const errData = await response.json().catch(() => ({}));
       addMessage('assistant', errData.error || 'Omlouvám se, něco se pokazilo.');
@@ -752,6 +755,14 @@ async function generateAudio(text, container) {
 
     if (response.status === 429) {
       container.innerHTML = '<div class="audio-loading" style="color:#f59e0b">⏳ Limit hlasových odpovědí překročen</div>';
+      return;
+    }
+
+    if (response.status === 402) {
+      container.innerHTML = '<div class="audio-loading" style="color:#f59e0b">💎 Nedostatek kreditů pro hlasovou odpověď (5 kreditů)</div>';
+      sessionStats.creditBalance = Math.max(0, (sessionStats.creditBalance || 0));
+      updateCreditDisplay();
+      fetchCredits();
       return;
     }
 
