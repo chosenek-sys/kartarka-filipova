@@ -588,6 +588,21 @@ async function sendMessage() {
     document.getElementById('sendBtn').disabled = false;
     return;
   }
+  // Client-side credit pre-check (server is the authority, this avoids wasted requests)
+  if (sessionStats.creditBalance !== null) {
+    const requiredCredits = responseMode === 'audio' ? 6 : 1;
+    if (sessionStats.creditBalance < requiredCredits) {
+      hideTyping();
+      if (responseMode === 'audio') {
+        addMessage('assistant', '💎 Nemáte dostatek kreditů pro hlasovou odpověď (vyžaduje 6 kreditů: 1 text + 5 hlas). Přepněte na textový režim nebo si doplňte kredity.');
+      } else {
+        addMessage('assistant', '💎 Nemáte dostatek kreditů. Kontaktujte nás pro doplnění.');
+      }
+      isGenerating = false;
+      document.getElementById('sendBtn').disabled = false;
+      return;
+    }
+  }
 
   try {
     const response = await fetch(`${API_BASE}/api/chat`, {
@@ -722,7 +737,13 @@ async function sendMessage() {
         }
       }
 
-      // Refresh credits and conversation list
+      // Optimistic credit update — show deducted balance immediately
+      if (sessionStats.creditBalance !== null) {
+        sessionStats.creditBalance = Math.max(0, sessionStats.creditBalance - 1);
+        updateCreditDisplay();
+      }
+
+      // Refresh credits from server (eventual consistency)
       fetchCredits();
       loadConversationList();
     }
@@ -772,6 +793,12 @@ async function generateAudio(text, container) {
     }
 
     const audioBlob = await response.blob();
+
+    // Optimistic credit update for TTS (5 credits)
+    if (sessionStats.creditBalance !== null) {
+      sessionStats.creditBalance = Math.max(0, sessionStats.creditBalance - 5);
+      updateCreditDisplay();
+    }
     const audioUrl = URL.createObjectURL(audioBlob);
     const audio = new Audio(audioUrl);
 
