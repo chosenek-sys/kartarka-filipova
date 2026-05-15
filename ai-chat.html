@@ -56,8 +56,8 @@
         <p><span class="online-dot"></span> AI Duchovní průvodkyně</p>
       </div>
       <span class="ai-badge">✦ AI</span>
-      <div class="credit-display" id="creditDisplay">
-        <span class="credit-item" id="userCredits">💎 Kredity: —</span>
+      <div class="credit-display" id="creditDisplay" onclick="openPurchaseModal()" title="Klikněte pro nákup kreditů">
+        <span class="credit-item credit-clickable" id="userCredits">💎 Kredity: —</span>
       </div>
     </div>
     <div class="conv-title-bar" id="convTitleBar">
@@ -93,6 +93,41 @@
         <button class="send-btn" id="sendBtn" onclick="sendMessage()" title="Odeslat">➤</button>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- Purchase Modal -->
+<div class="modal-overlay hidden" id="purchaseModal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3>💎 Doplnit kredity</h3>
+      <button class="modal-close" onclick="closePurchaseModal()">&times;</button>
+    </div>
+    <p class="modal-subtitle">Vyberte balíček kreditů</p>
+    <div class="modal-test-badge">🧪 TESTOVACÍ REŽIM — žádná platba</div>
+    <div class="package-grid">
+      <div class="package-card" onclick="purchaseCredits('small')">
+        <div class="package-amount">10</div>
+        <div class="package-label">kreditů</div>
+        <div class="package-price">49 Kč</div>
+        <div class="package-detail">~10 textových odpovědí</div>
+      </div>
+      <div class="package-card popular" onclick="purchaseCredits('medium')">
+        <div class="package-badge">Oblíbené</div>
+        <div class="package-amount">30</div>
+        <div class="package-label">kreditů</div>
+        <div class="package-price">129 Kč</div>
+        <div class="package-detail">~30 text / 6 hlasových</div>
+      </div>
+      <div class="package-card" onclick="purchaseCredits('large')">
+        <div class="package-amount">100</div>
+        <div class="package-label">kreditů</div>
+        <div class="package-price">349 Kč</div>
+        <div class="package-detail">~100 text / 20 hlasových</div>
+      </div>
+    </div>
+    <div class="purchase-status hidden" id="purchaseStatus"></div>
+    <p class="modal-footer-text">1 kredit = textová odpověď · 5 kreditů = hlasová odpověď</p>
   </div>
 </div>
 

@@ -486,6 +486,90 @@ async function fetchCredits() {
   }
 }
 
+// ============ CREDIT PURCHASE ============
+function openPurchaseModal() {
+  const modal = document.getElementById('purchaseModal');
+  if (modal) {
+    modal.classList.remove('hidden');
+    // Reset status message
+    const status = document.getElementById('purchaseStatus');
+    if (status) { status.classList.add('hidden'); status.textContent = ''; }
+  }
+}
+
+function closePurchaseModal() {
+  const modal = document.getElementById('purchaseModal');
+  if (modal) modal.classList.add('hidden');
+}
+
+async function purchaseCredits(packageId) {
+  const status = document.getElementById('purchaseStatus');
+  const cards = document.querySelectorAll('.package-card');
+
+  // Disable all cards during purchase
+  cards.forEach(card => card.style.pointerEvents = 'none');
+  if (status) {
+    status.classList.remove('hidden');
+    status.textContent = '⏳ Zpracovávám...';
+    status.className = 'purchase-status';
+  }
+
+  const token = await getAccessToken();
+  if (!token) {
+    if (status) { status.textContent = '❌ Přihlášení vypršelo.'; status.classList.add('error'); }
+    cards.forEach(card => card.style.pointerEvents = '');
+    return;
+  }
+
+  try {
+    const response = await fetch(`${API_BASE}/api/purchase`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ packageId }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      if (status) { status.textContent = `❌ ${data.error || 'Nákup se nezdařil.'}`; status.classList.add('error'); }
+      cards.forEach(card => card.style.pointerEvents = '');
+      return;
+    }
+
+    // Success — update balance immediately
+    if (data.newBalance !== undefined) {
+      sessionStats.creditBalance = data.newBalance;
+      updateCreditDisplay();
+    }
+
+    if (status) {
+      status.textContent = `✅ ${data.message}`;
+      status.classList.add('success');
+    }
+
+    // Re-enable cards and close modal after delay
+    setTimeout(() => {
+      cards.forEach(card => card.style.pointerEvents = '');
+      closePurchaseModal();
+      fetchCredits(); // sync from server
+    }, 1500);
+
+  } catch (error) {
+    console.error('Purchase error:', error);
+    if (status) { status.textContent = '❌ Chyba připojení.'; status.classList.add('error'); }
+    cards.forEach(card => card.style.pointerEvents = '');
+  }
+}
+
+// Close modal on overlay click
+document.addEventListener('click', (event) => {
+  const modal = document.getElementById('purchaseModal');
+  if (event.target === modal) closePurchaseModal();
+});
+
 // ============ RESPONSE MODE ============
 function setMode(mode) {
   responseMode = mode;

@@ -159,3 +159,44 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
   .message{max-width:90%}
   .credit-display{order:10;width:100%;justify-content:center;margin:0;margin-top:.3rem}
 }
+
+/* Credit clickable */
+.credit-clickable{cursor:pointer;transition:all .2s}
+.credit-clickable:hover{opacity:.8;transform:scale(1.05)}
+
+/* Purchase Modal */
+.modal-overlay{position:fixed;inset:0;z-index:300;background:rgba(61,43,31,.6);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:1rem;animation:fadeIn .2s}
+.modal-overlay.hidden{display:none}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal-card{background:var(--cream);border-radius:var(--radius);padding:2rem;max-width:460px;width:100%;box-shadow:0 20px 60px rgba(74,37,24,.25);animation:slideUp .3s ease-out}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.3rem}
+.modal-header h3{font-family:'Cinzel',serif;font-size:1.3rem;color:var(--brown)}
+.modal-close{background:none;border:none;font-size:1.5rem;color:var(--muted);cursor:pointer;padding:.2rem .5rem;border-radius:8px;transition:all .2s}
+.modal-close:hover{background:rgba(107,58,42,.1);color:var(--brown)}
+.modal-subtitle{color:var(--muted);font-size:.9rem;margin-bottom:.8rem}
+.modal-test-badge{background:linear-gradient(135deg,#fff3cd,#ffeeba);color:#856404;border:1px solid #ffc107;border-radius:8px;padding:.4rem .8rem;font-size:.75rem;font-weight:600;text-align:center;margin-bottom:1rem;letter-spacing:.5px}
+
+/* Package Grid */
+.package-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.8rem;margin-bottom:1rem}
+.package-card{background:var(--white);border:2px solid rgba(107,58,42,.12);border-radius:var(--radius-sm);padding:1.2rem .8rem;text-align:center;cursor:pointer;transition:all .25s;position:relative}
+.package-card:hover{border-color:var(--brown);transform:translateY(-3px);box-shadow:0 8px 24px rgba(107,58,42,.15)}
+.package-card:active{transform:translateY(-1px)}
+.package-card.popular{border-color:var(--gold);background:linear-gradient(135deg,#FDF8F3,#F8F0E3)}
+.package-card.popular:hover{border-color:var(--brown);box-shadow:0 8px 24px rgba(201,169,110,.25)}
+.package-badge{position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,var(--gold),var(--gold-light));color:#fff;font-size:.65rem;font-weight:700;padding:.2rem .6rem;border-radius:20px;white-space:nowrap;letter-spacing:.5px;text-transform:uppercase}
+.package-amount{font-family:'Cinzel',serif;font-size:2rem;font-weight:700;color:var(--brown);line-height:1}
+.package-label{font-size:.75rem;color:var(--muted);margin-bottom:.5rem}
+.package-price{font-size:1.1rem;font-weight:700;color:var(--accent);margin-bottom:.2rem}
+.package-detail{font-size:.7rem;color:var(--muted2)}
+
+/* Purchase Status */
+.purchase-status{text-align:center;padding:.6rem;border-radius:8px;font-size:.85rem;font-weight:500;margin-bottom:.5rem;transition:all .3s}
+.purchase-status.success{background:rgba(72,187,120,.12);color:#276749}
+.purchase-status.error{background:rgba(239,68,68,.12);color:#9b1c1c}
+.modal-footer-text{color:var(--muted2);font-size:.75rem;text-align:center}
+
+@media(max-width:500px){
+  .package-grid{grid-template-columns:1fr;gap:.6rem}
+  .modal-card{padding:1.2rem}
+}
