@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel — Zdenka AI</title>
+<meta name="description" content="Administrační panel pro správu uživatelů a kreditů Zdenka AI.">
+<meta name="robots" content="noindex, nofollow">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<link rel="stylesheet" href="style.css?v=admin1">
+</head>
+<body>
+
+<div class="bg-glow"></div>
+
+<!-- AUTH SCREEN (reused from main app) -->
+<div class="auth-screen" id="authScreen">
+  <div class="logo-icon">🛡️</div>
+  <h1>Admin Panel</h1>
+  <p>Přihlaste se s administrátorským účtem pro přístup ke správě platformy.</p>
+  <div class="auth-form">
+    <input type="email" class="auth-input" id="authEmail" placeholder="Email" autocomplete="email">
+    <input type="password" class="auth-input" id="authPassword" placeholder="Heslo" autocomplete="current-password">
+    <button class="btn-enter" id="loginBtn" onclick="handleAdminLogin()">Přihlásit se</button>
+    <div class="auth-error" id="authError"></div>
+  </div>
+</div>
+
+<!-- ACCESS DENIED -->
+<div class="admin-denied hidden" id="accessDenied">
+  <div class="logo-icon">🚫</div>
+  <h1>Přístup odepřen</h1>
+  <p>Tento účet nemá administrátorská práva.</p>
+  <button class="btn-enter" onclick="handleAdminLogout()">Odhlásit se</button>
+</div>
+
+<!-- ADMIN DASHBOARD -->
+<div class="admin-app hidden" id="adminApp">
+  <!-- Top Bar -->
+  <div class="admin-topbar">
+    <div class="admin-topbar-left">
+      <span class="admin-logo">🛡️</span>
+      <h1 class="admin-title">Admin Panel — Zdenka AI</h1>
+    </div>
+    <div class="admin-topbar-right">
+      <span class="admin-email" id="adminEmail"></span>
+      <button class="btn-logout" onclick="handleAdminLogout()">Odhlásit</button>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="admin-content">
+    <div class="admin-stats" id="statsCards">
+      <div class="stat-card">
+        <div class="stat-icon">👥</div>
+        <div class="stat-value" id="statUsers">—</div>
+        <div class="stat-label">Celkem uživatelů</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">⚡</div>
+        <div class="stat-value" id="statActive">—</div>
+        <div class="stat-label">Aktivních (7 dní)</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">💬</div>
+        <div class="stat-value" id="statMessages">—</div>
+        <div class="stat-label">Celkem zpráv</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">💰</div>
+        <div class="stat-value" id="statCost">—</div>
+        <div class="stat-label">Náklady (USD)</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">💎</div>
+        <div class="stat-value" id="statCredits">—</div>
+        <div class="stat-label">Kreditů v oběhu</div>
+      </div>
+    </div>
+
+    <!-- User Table -->
+    <div class="admin-section">
+      <div class="admin-section-header">
+        <h2>Uživatelé</h2>
+        <div class="admin-search">
+          <input type="text" class="admin-search-input" id="userSearch" placeholder="Hledat dle emailu..." oninput="debounceSearch()">
+        </div>
+      </div>
+      <div class="admin-table-wrap">
+        <table class="admin-table" id="usersTable">
+          <thead>
+            <tr>
+              <th>Email</th>
+              <th>Jméno</th>
+              <th>Role</th>
+              <th>Kredity</th>
+              <th>Konverzace</th>
+              <th>Poslední aktivita</th>
+              <th>Registrace</th>
+              <th>Akce</th>
+            </tr>
+          </thead>
+          <tbody id="usersBody"></tbody>
+        </table>
+      </div>
+      <div class="admin-pagination" id="pagination"></div>
+    </div>
+
+    <!-- User Detail Panel (shown when a user is selected) -->
+    <div class="admin-detail hidden" id="userDetail">
+      <div class="admin-detail-header">
+        <h2 id="detailTitle">Detail uživatele</h2>
+        <button class="admin-detail-close" onclick="closeUserDetail()">✕</button>
+      </div>
+      <div class="admin-detail-body">
+        <!-- User Info -->
+        <div class="detail-info" id="detailInfo"></div>
+
+        <!-- Credit Adjustment -->
+        <div class="detail-section">
+          <h3>💎 Úprava kreditů</h3>
+          <div class="credit-adjust-form">
+            <input type="number" class="admin-input" id="adjustAmount" placeholder="Počet kreditů (+/-)" step="1">
+            <input type="text" class="admin-input" id="adjustReason" placeholder="Důvod (volitelné)">
+            <button class="btn-adjust" onclick="submitCreditAdjustment()">Upravit kredity</button>
+          </div>
+          <div class="adjust-status hidden" id="adjustStatus"></div>
+          <div class="adjust-history" id="adjustHistory"></div>
+        </div>
+
+        <!-- Conversations -->
+        <div class="detail-section">
+          <h3>💬 Konverzace</h3>
+          <div id="detailConversations" class="detail-conv-list"></div>
+        </div>
+
+        <!-- Message Viewer -->
+        <div class="detail-section hidden" id="messageViewer">
+          <div class="msg-viewer-header">
+            <h3 id="msgViewerTitle">Zprávy</h3>
+            <button class="admin-detail-close" onclick="closeMessageViewer()">✕ Zavřít</button>
+          </div>
+          <div class="msg-viewer-body" id="msgViewerBody"></div>
+        </div>
+
+        <!-- Role Management -->
+        <div class="detail-section">
+          <h3>🛡️ Správa role</h3>
+          <div class="role-manage" id="roleManage"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="admin.js?v=1"></script>
+</body>
+</html>
