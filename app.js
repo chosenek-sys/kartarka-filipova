@@ -73,6 +73,24 @@ const CARD_DATA = {
   56: { name: 'Žlázy', image: null },
   57: { name: 'Žučník', image: null },
 };
+
+// ============ SIMPLE MARKDOWN RENDERER ============
+// Converts **bold** and *italic* to HTML while escaping everything else (XSS-safe)
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+function renderSimpleMarkdown(text) {
+  let html = escapeHtml(text);
+  // **bold** → <strong>bold</strong>
+  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  // *italic* → <em>italic</em> (but not inside <strong> tags already)
+  html = html.replace(/(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)/g, '<em>$1</em>');
+  return html;
+}
+
 const CARD_POSITIONS = ['Minulost', 'Přítomnost', 'Budoucnost'];
 const CARD_MARKER_REGEX = /\[CARD:(\d+):([^\]]+)\]/g;
 
@@ -87,20 +105,26 @@ async function getAccessToken() {
   return session?.access_token || null;
 }
 
+let chatInitialized = false;
+
 async function initAuth() {
   const { data: { session } } = await supabaseClient.auth.getSession();
   if (session) {
     showChat(session.user);
+    chatInitialized = true;
   } else {
     showAuthScreen();
   }
 
   supabaseClient.auth.onAuthStateChange((event, session) => {
-    if (event === 'SIGNED_IN' && session) {
+    if (event === 'SIGNED_IN' && session && !chatInitialized) {
       showChat(session.user);
+      chatInitialized = true;
     } else if (event === 'SIGNED_OUT') {
+      chatInitialized = false;
       showAuthScreen();
     }
+    // TOKEN_REFRESHED and repeat SIGNED_IN events are ignored
   });
 }
 
@@ -521,7 +545,8 @@ function typewriterFlush() {
   typewriterState.buffer = '';
   typewriterState.animFrameId = null;
   if (typewriterState.bubbleEl) {
-    typewriterState.bubbleEl.textContent = typewriterState.rendered;
+    // Apply markdown formatting now that streaming is complete
+    typewriterState.bubbleEl.innerHTML = renderSimpleMarkdown(typewriterState.rendered);
     typewriterState.bubbleEl.classList.remove('streaming');
   }
 }
@@ -690,7 +715,7 @@ function addMessage(role, content, withAudio = false) {
     if (preText) {
       const preBubble = document.createElement('div');
       preBubble.className = 'msg-bubble';
-      preBubble.textContent = preText;
+      preBubble.innerHTML = renderSimpleMarkdown(preText);
       messageDiv.appendChild(preBubble);
     }
 
@@ -720,14 +745,18 @@ function addMessage(role, content, withAudio = false) {
       if (narration) {
         const narDiv = document.createElement('div');
         narDiv.className = 'card-narration';
-        narDiv.textContent = narration;
+        narDiv.innerHTML = renderSimpleMarkdown(narration);
         messageDiv.appendChild(narDiv);
       }
     }
   } else {
     const bubbleDiv = document.createElement('div');
     bubbleDiv.className = 'msg-bubble';
-    bubbleDiv.textContent = content; // textContent prevents XSS
+    if (role === 'assistant') {
+      bubbleDiv.innerHTML = renderSimpleMarkdown(content);
+    } else {
+      bubbleDiv.textContent = content; // textContent prevents XSS for user input
+    }
     messageDiv.appendChild(bubbleDiv);
   }
 
