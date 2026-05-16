@@ -8,14 +8,21 @@
 <meta name="robots" content="noindex, nofollow">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<link rel="stylesheet" href="style.css?v=admin1">
+<link rel="stylesheet" href="style.css?v=admin2">
 </head>
 <body>
 
 <div class="bg-glow"></div>
 
-<!-- AUTH SCREEN (reused from main app) -->
-<div class="auth-screen" id="authScreen">
+<!-- LOADING SCREEN (shown while checking session) -->
+<div class="auth-screen" id="loadingScreen">
+  <div class="logo-icon">🛡️</div>
+  <h1>Admin Panel</h1>
+  <p>Ověřování přístupu…</p>
+</div>
+
+<!-- AUTH SCREEN (shown only when no session exists) -->
+<div class="auth-screen hidden" id="authScreen">
   <div class="logo-icon">🛡️</div>
   <h1>Admin Panel</h1>
   <p>Přihlaste se s administrátorským účtem pro přístup ke správě platformy.</p>
@@ -44,6 +51,7 @@
       <h1 class="admin-title">Admin Panel — Zdenka AI</h1>
     </div>
     <div class="admin-topbar-right">
+      <a class="btn-back-chat" href="ai-chat.html" title="Zpět do chatu">💬 Chat</a>
       <span class="admin-email" id="adminEmail"></span>
       <button class="btn-logout" onclick="handleAdminLogout()">Odhlásit</button>
     </div>
@@ -154,6 +162,6 @@
   </div>
 </div>
 
-<script src="admin.js?v=2"></script>
+<script src="admin.js?v=3"></script>
 </body>
 </html>

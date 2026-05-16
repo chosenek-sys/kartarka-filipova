@@ -7,7 +7,7 @@
 <meta name="description" content="Poraďte se s AI asistentkou Zdenky Filipové. Duchovní vedení a podpora — textově i hlasově.">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<link rel="stylesheet" href="style.css?v=phase1b">
+<link rel="stylesheet" href="style.css?v=admin2">
 </head>
 <body>
 
@@ -42,7 +42,6 @@
     </div>
     <div id="conversationList"></div>
     <div class="sidebar-footer">
-      <a class="btn-admin hidden" id="adminLink" href="admin.html" title="Admin Panel">🛡️ Admin</a>
       <span class="user-email" id="userName"></span>
       <button class="btn-logout" onclick="handleLogout()">Odhlásit</button>
     </div>
@@ -57,6 +56,7 @@
         <p><span class="online-dot"></span> AI Duchovní průvodkyně</p>
       </div>
       <span class="ai-badge">✦ AI</span>
+      <a class="btn-admin hidden" id="adminLink" href="admin.html" title="Admin Panel">🛡️</a>
       <div class="credit-display" id="creditDisplay" onclick="openPurchaseModal()" title="Klikněte pro nákup kreditů">
         <span class="credit-item credit-clickable" id="userCredits">💎 Kredity: —</span>
       </div>
@@ -132,6 +132,6 @@
   </div>
 </div>
 
-<script src="app.js?v=admin1"></script>
+<script src="app.js?v=admin2"></script>
 </body>
 </html>

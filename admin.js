@@ -174,6 +174,7 @@ async function handleAdminLogout() {
   selectedUserId = null;
   hide($('adminApp'));
   hide($('accessDenied'));
+  hide($('loadingScreen'));
   show($('authScreen'));
   $('loginBtn').disabled = false;
   $('loginBtn').textContent = 'Přihlásit se';
@@ -187,11 +188,13 @@ async function checkAdminAccess() {
     await adminFetch('stats');
     showAdminDashboard();
   } catch (error) {
+    hide($('loadingScreen'));
     if (error.message === 'FORBIDDEN') {
       hide($('authScreen'));
       show($('accessDenied'));
     } else {
       console.error('Admin check error:', error);
+      show($('authScreen'));
       $('authError').textContent = 'Chyba při ověření přístupu.';
       $('loginBtn').disabled = false;
       $('loginBtn').textContent = 'Přihlásit se';
@@ -200,6 +203,7 @@ async function checkAdminAccess() {
 }
 
 async function showAdminDashboard() {
+  hide($('loadingScreen'));
   hide($('authScreen'));
   hide($('accessDenied'));
   show($('adminApp'));
@@ -562,6 +566,8 @@ async function initAdmin() {
     currentSession = session;
     await checkAdminAccess();
   } else {
+    // No existing session — show login form
+    hide($('loadingScreen'));
     show($('authScreen'));
   }
 
