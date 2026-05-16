@@ -950,6 +950,65 @@ async function sendMessage() {
     let msgOutputTokens = 0;
     let cardMarkerBuffer = '';
     let cardRevealCount = 0;
+    let contextFilterBuffer = '';
+    let insideCardDraw = false;
+
+    // Filter out <card_draw>...</card_draw> and standalone --- from streaming text
+    function filterInternalContext(text) {
+      contextFilterBuffer += text;
+      let output = '';
+
+      while (contextFilterBuffer.length > 0) {
+        if (insideCardDraw) {
+          // Look for closing tag
+          const closeIdx = contextFilterBuffer.indexOf('</card_draw>');
+          if (closeIdx !== -1) {
+            // Skip everything up to and including </card_draw>
+            contextFilterBuffer = contextFilterBuffer.slice(closeIdx + '</card_draw>'.length);
+            insideCardDraw = false;
+          } else if (contextFilterBuffer.length > 200) {
+            // Safety: if buffer gets too large without closing tag, flush it
+            contextFilterBuffer = '';
+            insideCardDraw = false;
+          } else {
+            // Wait for more data
+            break;
+          }
+        } else {
+          // Look for opening tag
+          const openIdx = contextFilterBuffer.indexOf('<card_draw>');
+          const partialIdx = contextFilterBuffer.indexOf('<');
+
+          if (openIdx !== -1) {
+            // Output text before the tag, skip the tag content
+            output += contextFilterBuffer.slice(0, openIdx);
+            contextFilterBuffer = contextFilterBuffer.slice(openIdx + '<card_draw>'.length);
+            insideCardDraw = true;
+          } else if (partialIdx !== -1) {
+            // Possible partial tag at end — check if it's a prefix of '<card_draw>'
+            const tail = contextFilterBuffer.slice(partialIdx);
+            if ('<card_draw>'.startsWith(tail)) {
+              output += contextFilterBuffer.slice(0, partialIdx);
+              contextFilterBuffer = contextFilterBuffer.slice(partialIdx);
+              break;
+            }
+            // Not a prefix of card_draw — safe to flush
+            output += contextFilterBuffer;
+            contextFilterBuffer = '';
+          } else {
+            // No tag found — all text is safe
+            output += contextFilterBuffer;
+            contextFilterBuffer = '';
+          }
+        }
+      }
+
+      // Strip standalone --- lines from the output
+      output = output.replace(/^---\s*$/gm, '');
+      // Collapse 3+ newlines to 2
+      output = output.replace(/\n{3,}/g, '\n\n');
+      return output;
+    }
 
     while (true) {
       const { done, value } = await reader.read();
@@ -981,8 +1040,12 @@ async function sendMessage() {
               bubble.classList.add('streaming');
               typewriterState.bubbleEl = bubble;
             }
+            // Filter out internal context before processing card markers
+            const filteredText = filterInternalContext(newText);
+            if (!filteredText) continue;
+
             // Card marker lookahead buffer
-            cardMarkerBuffer += newText;
+            cardMarkerBuffer += filteredText;
             // Process the buffer for complete markers or safe text
             let safeText = '';
             while (cardMarkerBuffer.length > 0) {
@@ -1064,6 +1127,14 @@ async function sendMessage() {
       }
     }
 
+    // Flush any remaining context filter buffer
+    if (contextFilterBuffer && !insideCardDraw) {
+      const remainingFiltered = contextFilterBuffer.replace(/^---\s*$/gm, '').replace(/\n{3,}/g, '\n\n');
+      if (remainingFiltered.trim()) {
+        cardMarkerBuffer += remainingFiltered;
+      }
+      contextFilterBuffer = '';
+    }
     // Flush any remaining card marker buffer as plain text
     if (cardMarkerBuffer) {
       typewriterAppend(cardMarkerBuffer);
