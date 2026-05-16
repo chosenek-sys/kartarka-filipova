@@ -62,6 +62,9 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
 .sidebar-footer .user-email{flex:1;font-size:.7rem;color:var(--muted2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .btn-logout{background:none;border:1px solid rgba(107,58,42,.15);border-radius:50px;padding:.3rem .6rem;color:var(--muted);font-size:.7rem;cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s}
 .btn-logout:hover{border-color:var(--brown);color:var(--brown)}
+.btn-admin{background:none;border:1px solid var(--gold);border-radius:50px;padding:.3rem .6rem;color:var(--gold);font-size:.7rem;cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s;text-decoration:none;white-space:nowrap}
+.btn-admin:hover{background:var(--gold);color:#fff}
+.btn-admin.hidden{display:none}
 
 /* Main chat area */
 .chat-main{flex:1;display:flex;flex-direction:column;min-width:0}

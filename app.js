@@ -302,6 +302,16 @@ function showChat(user) {
   const userNameEl = document.getElementById('userName');
   if (userNameEl) userNameEl.textContent = user.email;
 
+  // Show admin link for admin users
+  const adminLink = document.getElementById('adminLink');
+  if (adminLink) {
+    if (user.app_metadata?.role === 'admin') {
+      adminLink.classList.remove('hidden');
+    } else {
+      adminLink.classList.add('hidden');
+    }
+  }
+
   // Start fresh with welcome screen
   startNewConversation();
 
