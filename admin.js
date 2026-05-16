@@ -8,7 +8,7 @@ const API_BASE = 'https://ai-api-amber.vercel.app';
 const SUPABASE_URL = 'https://dmtxfbzfbikynklkvjnw.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_eOjnyehEY92gd_u6XhQZqA_7qJLWtT-';
 
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // State
 let currentSession = null;
@@ -61,7 +61,7 @@ function escapeHtml(text) {
 // API Calls
 // ============================================================
 async function getToken() {
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session } } = await supabaseClient.auth.getSession();
   return session?.access_token;
 }
 
@@ -149,7 +149,7 @@ async function handleAdminLogin() {
   $('loginBtn').textContent = 'Přihlašování...';
 
   try {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
 
     if (error) {
       errorEl.textContent = 'Nesprávný email nebo heslo.';
@@ -169,7 +169,7 @@ async function handleAdminLogin() {
 }
 
 async function handleAdminLogout() {
-  await supabase.auth.signOut();
+  await supabaseClient.auth.signOut();
   currentSession = null;
   selectedUserId = null;
   hide($('adminApp'));
@@ -204,7 +204,7 @@ async function showAdminDashboard() {
   hide($('accessDenied'));
   show($('adminApp'));
 
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session } } = await supabaseClient.auth.getSession();
   $('adminEmail').textContent = session?.user?.email || '';
 
   // Load data
@@ -556,7 +556,7 @@ function closeUserDetail() {
 // Init — check existing session on page load
 // ============================================================
 async function initAdmin() {
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session } } = await supabaseClient.auth.getSession();
 
   if (session) {
     currentSession = session;
@@ -566,7 +566,7 @@ async function initAdmin() {
   }
 
   // Listen for auth changes (token refresh etc.)
-  supabase.auth.onAuthStateChange((event, session) => {
+  supabaseClient.auth.onAuthStateChange((event, session) => {
     if (event === 'SIGNED_OUT') {
       handleAdminLogout();
     }
