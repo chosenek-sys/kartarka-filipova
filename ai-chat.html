@@ -7,7 +7,7 @@
 <meta name="description" content="Poraďte se s AI asistentkou Zdenky Filipové. Duchovní vedení a podpora — textově i hlasově.">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<link rel="stylesheet" href="style.css?v=sub1">
+<link rel="stylesheet" href="style.css?v=mob1">
 </head>
 <body>
 
@@ -35,6 +35,8 @@
 
 <!-- CHAT APP -->
 <div class="chat-app hidden" id="chatApp">
+  <!-- Sidebar overlay (mobile) -->
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
   <!-- Sidebar -->
   <div class="chat-sidebar">
     <div class="sidebar-header">
@@ -50,6 +52,7 @@
   <!-- Main -->
   <div class="chat-main">
     <div class="chat-header">
+      <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()" title="Historie konverzací">☰</button>
       <div class="chat-avatar">🔮</div>
       <div class="chat-header-info">
         <h2>Zdenka Filipová</h2>
@@ -183,6 +186,6 @@
   </div>
 </div>
 
-<script src="app.js?v=sub2"></script>
+<script src="app.js?v=mob1"></script>
 </body>
 </html>

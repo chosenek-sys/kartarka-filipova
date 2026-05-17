@@ -267,6 +267,28 @@ function toggleAuthMode() {
   }
 }
 
+// ============ MOBILE SIDEBAR ============
+function toggleSidebar() {
+  const sidebar = document.querySelector('.chat-sidebar');
+  const overlay = document.getElementById('sidebarOverlay');
+  if (!sidebar || !overlay) return;
+  const isOpen = sidebar.classList.toggle('open');
+  if (isOpen) {
+    overlay.classList.add('active');
+  } else {
+    overlay.classList.remove('active');
+  }
+}
+
+function closeSidebarIfMobile() {
+  if (window.innerWidth <= 768) {
+    const sidebar = document.querySelector('.chat-sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    if (sidebar) sidebar.classList.remove('open');
+    if (overlay) overlay.classList.remove('active');
+  }
+}
+
 // ============ UI TRANSITIONS ============
 function showAuthScreen() {
   document.getElementById('authScreen').classList.remove('hidden');
@@ -371,6 +393,7 @@ function renderConversationList(conversations) {
 }
 
 async function loadConversation(conversationId) {
+  closeSidebarIfMobile();
   const token = await getAccessToken();
   if (!token) return;
 
@@ -431,6 +454,7 @@ async function deleteConversation(conversationId) {
 }
 
 function startNewConversation() {
+  closeSidebarIfMobile();
   currentConversationId = generateUUID();
   conversationHistory = [];
   const container = document.getElementById('chatMessages');
