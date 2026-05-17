@@ -109,7 +109,7 @@ let chatInitialized = false;
 
 async function initAuth() {
   const { data: { session } } = await supabaseClient.auth.getSession();
-  if (session) {
+  if (session && !chatInitialized) {
     showChat(session.user);
     chatInitialized = true;
   } else {
