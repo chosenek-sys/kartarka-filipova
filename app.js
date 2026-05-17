@@ -645,6 +645,7 @@ async function purchaseCredits(packageId) {
 
     // Redirect to Stripe Checkout
     if (data.checkoutUrl) {
+      sessionStorage.setItem('prePurchaseBalance', String(sessionStats.creditBalance));
       window.location.href = data.checkoutUrl;
     } else {
       if (status) { status.textContent = '❌ Chyba: chybí odkaz na platbu.'; status.classList.add('error'); }
@@ -670,8 +671,9 @@ function handlePurchaseReturn() {
 
   if (purchaseResult === 'success') {
     showPurchaseToast('⏳ Zpracovávám platbu...', 'processing');
-    // Poll for credit update — webhook may take a moment
-    const previousBalance = sessionStats.creditBalance;
+    // Read balance saved before Stripe redirect
+    const previousBalance = parseInt(sessionStorage.getItem('prePurchaseBalance') || '0', 10);
+    sessionStorage.removeItem('prePurchaseBalance');
     let attempts = 0;
     const maxAttempts = 5;
     const pollInterval = setInterval(async () => {
