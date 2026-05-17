@@ -316,10 +316,12 @@ function showChat(user) {
   startNewConversation();
 
   fetchCredits();
+  loadSubscription();
   loadConversationList();
 
   // Check if returning from Stripe checkout
   handlePurchaseReturn();
+  handleSubscriptionReturn();
 
   document.getElementById('chatInput').focus();
 }
@@ -598,12 +600,34 @@ function openPurchaseModal() {
     // Reset status message
     const status = document.getElementById('purchaseStatus');
     if (status) { status.classList.add('hidden'); status.textContent = ''; }
+    // Refresh subscription status in modal
+    updateSubscriptionUI();
   }
 }
 
 function closePurchaseModal() {
   const modal = document.getElementById('purchaseModal');
   if (modal) modal.classList.add('hidden');
+}
+
+function switchPurchaseTab(tab) {
+  const subTab = document.getElementById('tabSubscription');
+  const oneTimeTab = document.getElementById('tabOneTime');
+  const subContent = document.getElementById('tabContentSubscription');
+  const oneTimeContent = document.getElementById('tabContentOnetime');
+  if (!subTab || !oneTimeTab || !subContent || !oneTimeContent) return;
+
+  if (tab === 'subscription') {
+    subTab.classList.add('active');
+    oneTimeTab.classList.remove('active');
+    subContent.classList.remove('hidden');
+    oneTimeContent.classList.add('hidden');
+  } else {
+    subTab.classList.remove('active');
+    oneTimeTab.classList.add('active');
+    subContent.classList.add('hidden');
+    oneTimeContent.classList.remove('hidden');
+  }
 }
 
 async function purchaseCredits(packageId) {
@@ -694,6 +718,41 @@ function handlePurchaseReturn() {
   }
 }
 
+// Handle return from Stripe Subscription Checkout
+function handleSubscriptionReturn() {
+  const params = new URLSearchParams(window.location.search);
+  const subResult = params.get('subscription');
+  if (!subResult) return;
+
+  // Clean URL params without reload
+  const cleanUrl = window.location.pathname;
+  window.history.replaceState({}, '', cleanUrl);
+
+  if (subResult === 'success') {
+    showPurchaseToast('⏳ Zpracovávám předplatné...', 'processing');
+    const previousBalance = parseInt(sessionStorage.getItem('prePurchaseBalance') || '0', 10);
+    sessionStorage.removeItem('prePurchaseBalance');
+    let attempts = 0;
+    const maxAttempts = 8;
+    const pollInterval = setInterval(async () => {
+      attempts++;
+      await fetchCredits();
+      await loadSubscription();
+      if (sessionStats.creditBalance > previousBalance || attempts >= maxAttempts) {
+        clearInterval(pollInterval);
+        if (sessionStats.creditBalance > previousBalance) {
+          const added = sessionStats.creditBalance - previousBalance;
+          showPurchaseToast(`✅ Předplatné aktivováno! Přidáno ${added} kreditů.`, 'success');
+        } else {
+          showPurchaseToast('✅ Předplatné aktivováno! Kredity budou přidány za okamžik.', 'success');
+        }
+      }
+    }, 2500);
+  } else if (subResult === 'cancelled') {
+    showPurchaseToast('Objednávka předplatného byla zrušena.', 'cancelled');
+  }
+}
+
 // Show a floating toast notification for purchase status
 function showPurchaseToast(message, type) {
   // Remove existing toast
@@ -717,6 +776,187 @@ document.addEventListener('click', (event) => {
   const modal = document.getElementById('purchaseModal');
   if (event.target === modal) closePurchaseModal();
 });
+
+// ============ SUBSCRIPTIONS ============
+let cachedSubscription = null;
+
+const TIER_LABELS = {
+  basic: '⭐ Základní',
+  guide: '⭐ Průvodce',
+  master: '👑 Mistr',
+};
+
+async function loadSubscription() {
+  const token = await getAccessToken();
+  if (!token) return;
+
+  try {
+    const response = await fetch(`${API_BASE}/api/subscription`, {
+      headers: { 'Authorization': `Bearer ${token}` },
+    });
+    if (!response.ok) return;
+    const data = await response.json();
+    cachedSubscription = data.subscription || null;
+    updateSubscriptionBadge();
+    updateSubscriptionUI();
+  } catch (err) {
+    console.error('Subscription fetch error:', err);
+  }
+}
+
+function updateSubscriptionBadge() {
+  const badge = document.getElementById('subscriptionBadge');
+  if (!badge) return;
+
+  if (cachedSubscription && cachedSubscription.status === 'active') {
+    badge.textContent = TIER_LABELS[cachedSubscription.tier] || '⭐ Předplatné';
+    badge.classList.remove('hidden');
+  } else {
+    badge.classList.add('hidden');
+  }
+}
+
+function updateSubscriptionUI() {
+  const banner = document.getElementById('activeSubBanner');
+  const tierEl = document.getElementById('activeSubTier');
+  const statusEl = document.getElementById('activeSubStatus');
+  const subtitle = document.getElementById('subSubtitle');
+  const cards = document.querySelectorAll('.sub-card');
+
+  // Guard for cached HTML without subscription elements
+  if (!banner) return;
+
+  if (cachedSubscription && (cachedSubscription.status === 'active' || cachedSubscription.status === 'past_due')) {
+    banner.classList.remove('hidden');
+    if (tierEl) tierEl.textContent = TIER_LABELS[cachedSubscription.tier] || cachedSubscription.tier;
+
+    if (statusEl) {
+      if (cachedSubscription.cancel_at_period_end) {
+        const endDate = cachedSubscription.current_period_end
+          ? new Date(cachedSubscription.current_period_end).toLocaleDateString('cs-CZ')
+          : '';
+        statusEl.textContent = `Zrušeno — aktivní do ${endDate}`;
+        statusEl.className = 'active-sub-status canceling';
+      } else if (cachedSubscription.status === 'past_due') {
+        statusEl.textContent = 'Platba po splatnosti';
+        statusEl.className = 'active-sub-status past-due';
+      } else {
+        statusEl.textContent = 'Aktivní';
+        statusEl.className = 'active-sub-status active';
+      }
+    }
+
+    if (subtitle) subtitle.textContent = 'Máte aktivní předplatné. Pro změnu úrovně použijte správu předplatného.';
+
+    // Highlight current tier card, disable clicks on all
+    cards.forEach(card => {
+      card.classList.remove('current-tier');
+      card.style.pointerEvents = 'none';
+      card.style.opacity = '0.6';
+    });
+    const currentCard = document.getElementById(`subCard${capitalize(cachedSubscription.tier)}`);
+    if (currentCard) {
+      currentCard.classList.add('current-tier');
+      currentCard.style.opacity = '1';
+    }
+  } else {
+    banner.classList.add('hidden');
+    if (subtitle) subtitle.textContent = 'Získejte kredity levněji s měsíčním předplatným';
+    cards.forEach(card => {
+      card.classList.remove('current-tier');
+      card.style.pointerEvents = '';
+      card.style.opacity = '';
+    });
+  }
+}
+
+function capitalize(str) {
+  const map = { basic: 'Basic', guide: 'Guide', master: 'Master' };
+  return map[str] || str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+async function subscribeTier(tier) {
+  const status = document.getElementById('purchaseStatus');
+  if (status) {
+    status.classList.remove('hidden');
+    status.textContent = '⏳ Přesměrování na platbu...';
+    status.className = 'purchase-status';
+  }
+
+  const token = await getAccessToken();
+  if (!token) {
+    if (status) { status.textContent = '❌ Přihlášení vypršelo.'; status.classList.add('error'); }
+    return;
+  }
+
+  try {
+    const response = await fetch(`${API_BASE}/api/subscription`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ action: 'subscribe', tier }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      if (status) { status.textContent = `❌ ${data.error || 'Nákup se nezdařil.'}`; status.classList.add('error'); }
+      return;
+    }
+
+    if (data.checkoutUrl) {
+      sessionStorage.setItem('prePurchaseBalance', String(sessionStats.creditBalance));
+      window.location.href = data.checkoutUrl;
+    } else {
+      if (status) { status.textContent = '❌ Chyba: chybí odkaz na platbu.'; status.classList.add('error'); }
+    }
+  } catch (error) {
+    console.error('Subscribe error:', error);
+    if (status) { status.textContent = '❌ Chyba připojení.'; status.classList.add('error'); }
+  }
+}
+
+async function openBillingPortal() {
+  const status = document.getElementById('purchaseStatus');
+  if (status) {
+    status.classList.remove('hidden');
+    status.textContent = '⏳ Otevírám správu předplatného...';
+    status.className = 'purchase-status';
+  }
+
+  const token = await getAccessToken();
+  if (!token) {
+    if (status) { status.textContent = '❌ Přihlášení vypršelo.'; status.classList.add('error'); }
+    return;
+  }
+
+  try {
+    const response = await fetch(`${API_BASE}/api/subscription`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ action: 'portal' }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      if (status) { status.textContent = `❌ ${data.error || 'Nepodařilo se otevřít správu.'}`; status.classList.add('error'); }
+      return;
+    }
+
+    if (data.portalUrl) {
+      window.location.href = data.portalUrl;
+    }
+  } catch (error) {
+    console.error('Portal error:', error);
+    if (status) { status.textContent = '❌ Chyba připojení.'; status.classList.add('error'); }
+  }
+}
 
 // ============ RESPONSE MODE ============
 function setMode(mode) {
@@ -1393,5 +1633,8 @@ window.startNewConversation = startNewConversation;
 window.openPurchaseModal = openPurchaseModal;
 window.closePurchaseModal = closePurchaseModal;
 window.purchaseCredits = purchaseCredits;
+window.switchPurchaseTab = switchPurchaseTab;
+window.subscribeTier = subscribeTier;
+window.openBillingPortal = openBillingPortal;
 
 initAuth();

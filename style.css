@@ -172,6 +172,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
 .modal-overlay.hidden{display:none}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 .modal-card{background:var(--cream);border-radius:var(--radius);padding:2rem;max-width:460px;width:100%;box-shadow:0 20px 60px rgba(74,37,24,.25);animation:slideUp .3s ease-out}
+.modal-card-wide{max-width:680px}
 @keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
 .modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.3rem}
 .modal-header h3{font-family:'Cinzel',serif;font-size:1.3rem;color:var(--brown)}
@@ -202,6 +203,56 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
 @media(max-width:500px){
   .package-grid{grid-template-columns:1fr;gap:.6rem}
   .modal-card{padding:1.2rem}
+  .modal-card-wide{max-width:100%}
+}
+
+/* ============ SUBSCRIPTION STYLES ============ */
+
+/* Tab Switcher */
+.modal-tabs{display:flex;gap:.3rem;margin-bottom:1rem;background:rgba(107,58,42,.06);border-radius:50px;padding:.25rem}
+.modal-tab{flex:1;padding:.55rem .8rem;border:none;border-radius:50px;font-family:'Inter',sans-serif;font-size:.82rem;font-weight:600;cursor:pointer;transition:all .3s;background:transparent;color:var(--muted)}
+.modal-tab.active{background:var(--white);color:var(--brown);box-shadow:0 2px 8px rgba(107,58,42,.12)}
+.modal-tab:hover:not(.active){color:var(--text)}
+.tab-content.hidden{display:none}
+
+/* Subscription Grid */
+.subscription-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.8rem;margin-bottom:1rem}
+.sub-card{background:var(--white);border:2px solid rgba(107,58,42,.12);border-radius:var(--radius-sm);padding:1.4rem .8rem .8rem;text-align:center;cursor:pointer;transition:all .3s;position:relative}
+.sub-card:hover{border-color:var(--brown);transform:translateY(-4px);box-shadow:0 10px 30px rgba(107,58,42,.15)}
+.sub-card:active{transform:translateY(-2px)}
+.sub-card.popular{border-color:var(--gold);background:linear-gradient(135deg,#FDF8F3,#F8F0E3)}
+.sub-card.popular:hover{border-color:var(--brown);box-shadow:0 10px 30px rgba(201,169,110,.25)}
+.sub-badge{position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,var(--gold),var(--gold-light));color:#fff;font-size:.6rem;font-weight:700;padding:.2rem .7rem;border-radius:20px;white-space:nowrap;letter-spacing:.5px;text-transform:uppercase}
+.sub-tier-name{font-family:'Cinzel',serif;font-size:1.05rem;font-weight:700;color:var(--brown);margin-bottom:.3rem}
+.sub-price{font-size:1.6rem;font-weight:700;color:var(--accent);line-height:1.1;margin-bottom:.2rem}
+.sub-price span{font-size:.7rem;font-weight:400;color:var(--muted)}
+.sub-credits{font-size:.85rem;font-weight:600;color:var(--brown);margin-bottom:.2rem}
+.sub-per-credit{font-size:.72rem;color:var(--muted);margin-bottom:.3rem}
+.sub-savings{display:inline-block;font-size:.68rem;font-weight:700;color:#276749;background:rgba(72,187,120,.12);padding:.15rem .5rem;border-radius:50px}
+
+/* Current Tier Highlight */
+.sub-card.current-tier{border-color:var(--brown);box-shadow:0 0 0 3px rgba(107,58,42,.15),0 4px 16px rgba(107,58,42,.1)}
+.sub-card.current-tier::after{content:'✓ Aktuální';position:absolute;bottom:6px;left:50%;transform:translateX(-50%);font-size:.65rem;font-weight:700;color:var(--brown);background:rgba(107,58,42,.08);padding:.15rem .5rem;border-radius:50px}
+
+/* Active Subscription Banner */
+.active-sub-banner{display:flex;align-items:center;justify-content:space-between;background:linear-gradient(135deg,rgba(107,58,42,.08),rgba(201,169,110,.12));border:1px solid rgba(107,58,42,.15);border-radius:var(--radius-sm);padding:.7rem 1rem;margin-bottom:.8rem;gap:.6rem}
+.active-sub-banner.hidden{display:none}
+.active-sub-info{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap}
+.active-sub-tier{font-family:'Cinzel',serif;font-weight:700;color:var(--brown);font-size:.95rem}
+.active-sub-status{font-size:.75rem;font-weight:600;padding:.2rem .6rem;border-radius:50px}
+.active-sub-status.active{color:#276749;background:rgba(72,187,120,.15)}
+.active-sub-status.canceling{color:#d97706;background:rgba(245,158,11,.12)}
+.active-sub-status.past-due{color:#dc2626;background:rgba(220,38,38,.12)}
+.btn-manage-sub{font-size:.78rem;font-weight:600;color:var(--brown);background:var(--white);border:1px solid rgba(107,58,42,.2);padding:.4rem .8rem;border-radius:50px;cursor:pointer;font-family:'Inter',sans-serif;transition:all .25s;white-space:nowrap}
+.btn-manage-sub:hover{background:rgba(107,58,42,.06);border-color:var(--brown)}
+
+/* Subscription Badge (header) */
+.subscription-badge{font-size:.7rem;font-weight:700;color:var(--brown);background:linear-gradient(135deg,rgba(201,169,110,.2),rgba(107,58,42,.08));padding:.2rem .5rem;border-radius:50px;border:1px solid rgba(201,169,110,.3);white-space:nowrap}
+.subscription-badge.hidden{display:none}
+
+@media(max-width:600px){
+  .subscription-grid{grid-template-columns:1fr;gap:.6rem}
+  .active-sub-banner{flex-direction:column;text-align:center}
 }
 
 /* ============ HEALTH CARDS ============ */

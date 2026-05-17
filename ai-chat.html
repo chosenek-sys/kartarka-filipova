@@ -7,7 +7,7 @@
 <meta name="description" content="Poraďte se s AI asistentkou Zdenky Filipové. Duchovní vedení a podpora — textově i hlasově.">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<link rel="stylesheet" href="style.css?v=stripe1">
+<link rel="stylesheet" href="style.css?v=sub1">
 </head>
 <body>
 
@@ -58,6 +58,7 @@
       <span class="ai-badge">✦ AI</span>
       <a class="btn-admin hidden" id="adminLink" href="admin.html" title="Admin Panel">🛡️ Admin</a>
       <div class="credit-display" id="creditDisplay">
+        <span class="subscription-badge hidden" id="subscriptionBadge"></span>
         <span class="credit-balance" id="userCredits">💎 —</span>
         <button class="credit-buy-btn" onclick="openPurchaseModal()" title="Doplnit kredity">+ Doplnit</button>
       </div>
@@ -98,40 +99,90 @@
   </div>
 </div>
 
-<!-- Purchase Modal -->
+<!-- Purchase / Subscription Modal -->
 <div class="modal-overlay hidden" id="purchaseModal">
-  <div class="modal-card">
+  <div class="modal-card modal-card-wide">
     <div class="modal-header">
-      <h3>💎 Doplnit kredity</h3>
+      <h3>💎 Kredity a předplatné</h3>
       <button class="modal-close" onclick="closePurchaseModal()">&times;</button>
     </div>
-    <p class="modal-subtitle">Vyberte balíček kreditů</p>
-    <div class="package-grid">
-      <div class="package-card" onclick="purchaseCredits('small')">
-        <div class="package-amount">10</div>
-        <div class="package-label">kreditů</div>
-        <div class="package-price">49 Kč</div>
-        <div class="package-detail">~10 textových odpovědí</div>
-      </div>
-      <div class="package-card popular" onclick="purchaseCredits('medium')">
-        <div class="package-badge">Oblíbené</div>
-        <div class="package-amount">30</div>
-        <div class="package-label">kreditů</div>
-        <div class="package-price">129 Kč</div>
-        <div class="package-detail">~30 text / 6 hlasových</div>
-      </div>
-      <div class="package-card" onclick="purchaseCredits('large')">
-        <div class="package-amount">100</div>
-        <div class="package-label">kreditů</div>
-        <div class="package-price">349 Kč</div>
-        <div class="package-detail">~100 text / 20 hlasových</div>
-      </div>
+
+    <!-- Tab switcher -->
+    <div class="modal-tabs">
+      <button class="modal-tab active" id="tabSubscription" onclick="switchPurchaseTab('subscription')">⭐ Měsíční předplatné</button>
+      <button class="modal-tab" id="tabOneTime" onclick="switchPurchaseTab('onetime')">💎 Jednorázové</button>
     </div>
+
+    <!-- Subscription Tab -->
+    <div class="tab-content" id="tabContentSubscription">
+      <!-- Active subscription info (shown dynamically) -->
+      <div class="active-sub-banner hidden" id="activeSubBanner">
+        <div class="active-sub-info">
+          <span class="active-sub-tier" id="activeSubTier"></span>
+          <span class="active-sub-status" id="activeSubStatus"></span>
+        </div>
+        <button class="btn-manage-sub" onclick="openBillingPortal()">⚙️ Spravovat předplatné</button>
+      </div>
+
+      <p class="modal-subtitle" id="subSubtitle">Získejte kredity levněji s měsíčním předplatným</p>
+      <div class="subscription-grid">
+        <div class="sub-card" id="subCardBasic" onclick="subscribeTier('basic')">
+          <div class="sub-tier-name">Základní</div>
+          <div class="sub-price">199 <span>Kč/měsíc</span></div>
+          <div class="sub-credits">80 kreditů</div>
+          <div class="sub-per-credit">2,49 Kč/kredit</div>
+          <div class="sub-savings">Úspora 29%</div>
+        </div>
+        <div class="sub-card popular" id="subCardGuide" onclick="subscribeTier('guide')">
+          <div class="sub-badge">Nejoblíbenější</div>
+          <div class="sub-tier-name">Průvodce</div>
+          <div class="sub-price">499 <span>Kč/měsíc</span></div>
+          <div class="sub-credits">250 kreditů</div>
+          <div class="sub-per-credit">2,00 Kč/kredit</div>
+          <div class="sub-savings">Úspora 43%</div>
+        </div>
+        <div class="sub-card" id="subCardMaster" onclick="subscribeTier('master')">
+          <div class="sub-tier-name">Mistr</div>
+          <div class="sub-price">999 <span>Kč/měsíc</span></div>
+          <div class="sub-credits">600 kreditů</div>
+          <div class="sub-per-credit">1,67 Kč/kredit</div>
+          <div class="sub-savings">Úspora 52%</div>
+        </div>
+      </div>
+      <p class="modal-footer-text">Kredity se přičtou každý měsíc · Nevyužité kredity se přenášejí</p>
+    </div>
+
+    <!-- One-Time Tab -->
+    <div class="tab-content hidden" id="tabContentOnetime">
+      <p class="modal-subtitle">Vyberte balíček kreditů</p>
+      <div class="package-grid">
+        <div class="package-card" onclick="purchaseCredits('small')">
+          <div class="package-amount">10</div>
+          <div class="package-label">kreditů</div>
+          <div class="package-price">49 Kč</div>
+          <div class="package-detail">~10 textových odpovědí</div>
+        </div>
+        <div class="package-card popular" onclick="purchaseCredits('medium')">
+          <div class="package-badge">Oblíbené</div>
+          <div class="package-amount">30</div>
+          <div class="package-label">kreditů</div>
+          <div class="package-price">129 Kč</div>
+          <div class="package-detail">~30 text / 6 hlasových</div>
+        </div>
+        <div class="package-card" onclick="purchaseCredits('large')">
+          <div class="package-amount">100</div>
+          <div class="package-label">kreditů</div>
+          <div class="package-price">349 Kč</div>
+          <div class="package-detail">~100 text / 20 hlasových</div>
+        </div>
+      </div>
+      <p class="modal-footer-text">1 kredit = textová odpověď · 5 kreditů = hlasová odpověď</p>
+    </div>
+
     <div class="purchase-status hidden" id="purchaseStatus"></div>
-    <p class="modal-footer-text">1 kredit = textová odpověď · 5 kreditů = hlasová odpověď</p>
   </div>
 </div>
 
-<script src="app.js?v=stripe1"></script>
+<script src="app.js?v=sub1"></script>
 </body>
 </html>
