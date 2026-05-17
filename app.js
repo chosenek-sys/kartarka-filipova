@@ -318,6 +318,9 @@ function showChat(user) {
   fetchCredits();
   loadConversationList();
 
+  // Check if returning from Stripe checkout
+  handlePurchaseReturn();
+
   document.getElementById('chatInput').focus();
 }
 
@@ -607,11 +610,11 @@ async function purchaseCredits(packageId) {
   const status = document.getElementById('purchaseStatus');
   const cards = document.querySelectorAll('.package-card');
 
-  // Disable all cards during purchase
+  // Disable all cards during redirect
   cards.forEach(card => card.style.pointerEvents = 'none');
   if (status) {
     status.classList.remove('hidden');
-    status.textContent = '⏳ Zpracovávám...';
+    status.textContent = '⏳ Přesměrování na platbu...';
     status.className = 'purchase-status';
   }
 
@@ -640,28 +643,70 @@ async function purchaseCredits(packageId) {
       return;
     }
 
-    // Success — update balance immediately
-    if (data.newBalance !== undefined) {
-      sessionStats.creditBalance = data.newBalance;
-      updateCreditDisplay();
-    }
-
-    if (status) {
-      status.textContent = `✅ ${data.message}`;
-      status.classList.add('success');
-    }
-
-    // Re-enable cards and close modal after delay
-    setTimeout(() => {
+    // Redirect to Stripe Checkout
+    if (data.checkoutUrl) {
+      window.location.href = data.checkoutUrl;
+    } else {
+      if (status) { status.textContent = '❌ Chyba: chybí odkaz na platbu.'; status.classList.add('error'); }
       cards.forEach(card => card.style.pointerEvents = '');
-      closePurchaseModal();
-      fetchCredits(); // sync from server
-    }, 1500);
+    }
 
   } catch (error) {
     console.error('Purchase error:', error);
     if (status) { status.textContent = '❌ Chyba připojení.'; status.classList.add('error'); }
     cards.forEach(card => card.style.pointerEvents = '');
+  }
+}
+
+// Handle return from Stripe Checkout
+function handlePurchaseReturn() {
+  const params = new URLSearchParams(window.location.search);
+  const purchaseResult = params.get('purchase');
+  if (!purchaseResult) return;
+
+  // Clean URL params without reload
+  const cleanUrl = window.location.pathname;
+  window.history.replaceState({}, '', cleanUrl);
+
+  if (purchaseResult === 'success') {
+    showPurchaseToast('⏳ Zpracovávám platbu...', 'processing');
+    // Poll for credit update — webhook may take a moment
+    const previousBalance = sessionStats.creditBalance;
+    let attempts = 0;
+    const maxAttempts = 5;
+    const pollInterval = setInterval(async () => {
+      attempts++;
+      await fetchCredits();
+      if (sessionStats.creditBalance > previousBalance || attempts >= maxAttempts) {
+        clearInterval(pollInterval);
+        if (sessionStats.creditBalance > previousBalance) {
+          const added = sessionStats.creditBalance - previousBalance;
+          showPurchaseToast(`✅ Přidáno ${added} kreditů! Děkujeme za nákup.`, 'success');
+        } else {
+          showPurchaseToast('✅ Platba přijata! Kredity budou přidány za okamžik.', 'success');
+        }
+      }
+    }, 2000);
+  } else if (purchaseResult === 'cancelled') {
+    showPurchaseToast('Platba byla zrušena.', 'cancelled');
+  }
+}
+
+// Show a floating toast notification for purchase status
+function showPurchaseToast(message, type) {
+  // Remove existing toast
+  const existing = document.getElementById('purchaseToast');
+  if (existing) existing.remove();
+
+  const toast = document.createElement('div');
+  toast.id = 'purchaseToast';
+  toast.className = `purchase-toast purchase-toast-${type}`;
+  toast.textContent = message;
+  document.body.appendChild(toast);
+
+  // Auto-remove after delay (longer for processing state)
+  if (type !== 'processing') {
+    setTimeout(() => { toast.classList.add('fade-out'); setTimeout(() => toast.remove(), 500); }, 4000);
   }
 }
 
