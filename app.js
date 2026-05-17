@@ -867,18 +867,25 @@ function updateSubscriptionUI() {
       }
     }
 
-    if (subtitle) subtitle.textContent = 'Máte aktivní předplatné. Pro změnu úrovně použijte správu předplatného.';
 
-    // Highlight current tier card, disable clicks on all
+    if (subtitle) {
+      if (cachedSubscription.cancel_at_period_end) {
+        subtitle.textContent = 'P\u0159edplatn\u00e9 bylo zru\u0161eno. Klikn\u011bte na \u00farove\u0148 pro obnoven\u00ed.';
+      } else {
+        subtitle.textContent = 'Klikn\u011bte na jinou \u00farove\u0148 pro zm\u011bnu p\u0159edplatn\u00e9ho.';
+      }
+    }
+
+    // Highlight current tier card, but allow clicking OTHER tiers for upgrade/downgrade
     cards.forEach(card => {
       card.classList.remove('current-tier');
-      card.style.pointerEvents = 'none';
-      card.style.opacity = '0.6';
+      card.style.pointerEvents = '';
+      card.style.opacity = '';
     });
     const currentCard = document.getElementById(`subCard${capitalize(cachedSubscription.tier)}`);
     if (currentCard) {
       currentCard.classList.add('current-tier');
-      currentCard.style.opacity = '1';
+      currentCard.style.pointerEvents = 'none';
     }
   } else {
     banner.classList.add('hidden');
@@ -903,6 +910,11 @@ function capitalize(str) {
 }
 
 async function subscribeTier(tier) {
+  // If user already has an active subscription, do a tier change instead
+  if (cachedSubscription && (cachedSubscription.status === 'active' || cachedSubscription.status === 'past_due')) {
+    return await changeTier(tier);
+  }
+
   const status = document.getElementById('purchaseStatus');
   if (status) {
     status.classList.remove('hidden');
@@ -942,6 +954,55 @@ async function subscribeTier(tier) {
   } catch (error) {
     console.error('Subscribe error:', error);
     if (status) { status.textContent = '❌ Chyba připojení.'; status.classList.add('error'); }
+  }
+}
+
+async function changeTier(newTier) {
+  const tierLabels = { basic: 'Z\u00e1kladn\u00ed', guide: 'Pr\u016fvodce', master: 'Mistr' };
+  const tierLabel = tierLabels[newTier] || newTier;
+
+  if (!confirm(`Chcete zm\u011bnit p\u0159edplatn\u00e9 na \u00farove\u0148 \u201e${tierLabel}\u201c? Zm\u011bna se projev\u00ed okam\u017eit\u011b.`)) {
+    return;
+  }
+
+  const status = document.getElementById('purchaseStatus');
+  if (status) {
+    status.classList.remove('hidden');
+    status.textContent = '\u23f3 M\u011bn\u00edm p\u0159edplatn\u00e9...';
+    status.className = 'purchase-status';
+  }
+
+  const token = await getAccessToken();
+  if (!token) {
+    if (status) { status.textContent = '\u274c P\u0159ihl\u00e1\u0161en\u00ed vypr\u0161elo.'; status.classList.add('error'); }
+    return;
+  }
+
+  try {
+    const response = await fetch(`${API_BASE}/api/subscription`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ action: 'change_tier', tier: newTier }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      if (status) { status.textContent = `\u274c ${data.error || 'Zm\u011bna se nezda\u0159ila.'}`; status.classList.add('error'); }
+      return;
+    }
+
+    // Success - refresh subscription data and show toast
+    if (status) { status.classList.add('hidden'); }
+    showPurchaseToast(`\u2705 ${data.message || 'P\u0159edplatn\u00e9 zm\u011bn\u011bno!'}`, 'success');
+    await loadSubscription();
+    closePurchaseModal();
+  } catch (error) {
+    console.error('Change tier error:', error);
+    if (status) { status.textContent = '\u274c Chyba p\u0159ipojen\u00ed.'; status.classList.add('error'); }
   }
 }
 
