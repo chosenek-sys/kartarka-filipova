@@ -513,7 +513,7 @@ function updateCreditDisplay() {
   const el = document.getElementById('userCredits');
   if (!el || sessionStats.creditBalance === null) return;
   const balance = sessionStats.creditBalance;
-  el.textContent = `💎 Kredity: ${balance}`;
+  el.textContent = `💎 ${balance}`;
   // Warn/danger thresholds based on initial 30 credits
   el.classList.toggle('warn', balance <= 7 && balance > 3);
   el.classList.toggle('danger', balance <= 3);

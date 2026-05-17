@@ -57,8 +57,9 @@
       </div>
       <span class="ai-badge">✦ AI</span>
       <a class="btn-admin hidden" id="adminLink" href="admin.html" title="Admin Panel">🛡️ Admin</a>
-      <div class="credit-display" id="creditDisplay" onclick="openPurchaseModal()" title="Klikněte pro nákup kreditů">
-        <span class="credit-item credit-clickable" id="userCredits">💎 Kredity: —</span>
+      <div class="credit-display" id="creditDisplay">
+        <span class="credit-balance" id="userCredits">💎 —</span>
+        <button class="credit-buy-btn" onclick="openPurchaseModal()" title="Doplnit kredity">+ Doplnit</button>
       </div>
     </div>
     <div class="conv-title-bar" id="convTitleBar">
