@@ -830,19 +830,40 @@ function updateSubscriptionUI() {
     banner.classList.remove('hidden');
     if (tierEl) tierEl.textContent = TIER_LABELS[cachedSubscription.tier] || cachedSubscription.tier;
 
+    // Build status + renewal info
     if (statusEl) {
+      const periodEnd = cachedSubscription.current_period_end
+        ? new Date(cachedSubscription.current_period_end).toLocaleDateString('cs-CZ')
+        : '';
+
       if (cachedSubscription.cancel_at_period_end) {
-        const endDate = cachedSubscription.current_period_end
-          ? new Date(cachedSubscription.current_period_end).toLocaleDateString('cs-CZ')
-          : '';
-        statusEl.textContent = `Zrušeno — aktivní do ${endDate}`;
+        statusEl.textContent = `Zrušeno`;
         statusEl.className = 'active-sub-status canceling';
+        // Add detail about when it expires
+        let detailEl = document.getElementById('activeSubDetail');
+        if (!detailEl) {
+          detailEl = document.createElement('span');
+          detailEl.id = 'activeSubDetail';
+          detailEl.className = 'active-sub-detail';
+          statusEl.parentElement.appendChild(detailEl);
+        }
+        detailEl.textContent = periodEnd ? `Platné do ${periodEnd}` : '';
       } else if (cachedSubscription.status === 'past_due') {
         statusEl.textContent = 'Platba po splatnosti';
         statusEl.className = 'active-sub-status past-due';
+        removeSubDetail();
       } else {
         statusEl.textContent = 'Aktivní';
         statusEl.className = 'active-sub-status active';
+        // Show next renewal date
+        let detailEl = document.getElementById('activeSubDetail');
+        if (!detailEl) {
+          detailEl = document.createElement('span');
+          detailEl.id = 'activeSubDetail';
+          detailEl.className = 'active-sub-detail';
+          statusEl.parentElement.appendChild(detailEl);
+        }
+        detailEl.textContent = periodEnd ? `Další obnova: ${periodEnd}` : '';
       }
     }
 
@@ -861,6 +882,7 @@ function updateSubscriptionUI() {
     }
   } else {
     banner.classList.add('hidden');
+    removeSubDetail();
     if (subtitle) subtitle.textContent = 'Získejte kredity levněji s měsíčním předplatným';
     cards.forEach(card => {
       card.classList.remove('current-tier');
@@ -868,6 +890,11 @@ function updateSubscriptionUI() {
       card.style.opacity = '';
     });
   }
+}
+
+function removeSubDetail() {
+  const el = document.getElementById('activeSubDetail');
+  if (el) el.remove();
 }
 
 function capitalize(str) {
