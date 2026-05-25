@@ -13,7 +13,7 @@ let isGenerating = false;
 let currentConversationId = null;
 
 // ============ HEALTH CARD DATA ============
-const CARD_IMAGE_BASE = 'https://www.zdenkafilipova.cz/wp-content/uploads/2025/09/Kreslici%E2%95%A0u-pla%E2%95%A0utno-1-kopie-';
+const CARD_IMAGE_BASE = 'images/karty_zdravi/';
 const CARD_DATA = {
   1: { name: 'Anorexie', image: CARD_IMAGE_BASE + '2.webp' },
   2: { name: 'Astma, dýchání', image: CARD_IMAGE_BASE + '3.webp' },
@@ -96,8 +96,63 @@ const CARD_POSITIONS = ['Minulost', 'Přítomnost', 'Budoucnost'];
 const CARD_MARKER_REGEX = /\[CARD:(?:(health|magic):)?(\d+):([^\]]+)\]/g;
 
 // Magic map card images — hosted on GitHub Pages alongside health cards
-const MAGIC_MAP_IMAGE_BASE = 'https://chosenek-sys.github.io/kartarka-filipova/images/karty_mapy/';
-const MAGIC_MAP_DATA = {}; // Will be populated when images are uploaded
+const MAGIC_MAP_IMAGE_BASE = 'images/karty_mapy/';
+const MAGIC_MAP_DATA = {
+  1: { name: 'Sběratelka kostí', image: MAGIC_MAP_IMAGE_BASE + '1.jpg' },
+  2: { name: 'Vlídná zahradnice', image: MAGIC_MAP_IMAGE_BASE + '2.jpg' },
+  3: { name: 'Čaroděj vnímavosti', image: MAGIC_MAP_IMAGE_BASE + '3.jpg' },
+  4: { name: 'Duch místa', image: MAGIC_MAP_IMAGE_BASE + '4.jpg' },
+  5: { name: 'Skřítci', image: MAGIC_MAP_IMAGE_BASE + '5.jpg' },
+  6: { name: 'Hora', image: MAGIC_MAP_IMAGE_BASE + '6.jpg' },
+  7: { name: 'Do neznáma', image: MAGIC_MAP_IMAGE_BASE + '7.jpg' },
+  8: { name: 'Setkání', image: MAGIC_MAP_IMAGE_BASE + '8.jpg' },
+  9: { name: 'Bouře', image: MAGIC_MAP_IMAGE_BASE + '9.jpg' },
+  10: { name: 'Kamenité dno', image: MAGIC_MAP_IMAGE_BASE + '10.jpg' },
+  11: { name: 'Získání rovnováhy', image: MAGIC_MAP_IMAGE_BASE + '11.jpg' },
+  12: { name: 'Pomalu, ale jistě', image: MAGIC_MAP_IMAGE_BASE + '12.jpg' },
+  13: { name: 'Samota', image: MAGIC_MAP_IMAGE_BASE + '13.jpg' },
+  14: { name: 'Svézt se na vlně', image: MAGIC_MAP_IMAGE_BASE + '14.jpg' },
+  15: { name: 'Cirkus jedné manéže', image: MAGIC_MAP_IMAGE_BASE + '15.jpg' },
+  16: { name: 'Záchrana', image: MAGIC_MAP_IMAGE_BASE + '16.jpg' },
+  17: { name: 'Země duchů', image: MAGIC_MAP_IMAGE_BASE + '17.jpg' },
+  18: { name: 'Zázračný pramen', image: MAGIC_MAP_IMAGE_BASE + '18.jpg' },
+  19: { name: 'Dračí doupě', image: MAGIC_MAP_IMAGE_BASE + '19.jpg' },
+  20: { name: 'Let', image: MAGIC_MAP_IMAGE_BASE + '20.jpg' },
+  21: { name: 'Pole snů', image: MAGIC_MAP_IMAGE_BASE + '21.jpg' },
+  22: { name: 'Úmysl', image: MAGIC_MAP_IMAGE_BASE + '22.jpg' },
+  23: { name: 'Palác ze zlata', image: MAGIC_MAP_IMAGE_BASE + '23.jpg' },
+  24: { name: 'Uvízlý v blátě', image: MAGIC_MAP_IMAGE_BASE + '24.jpg' },
+  25: { name: 'Proměna', image: MAGIC_MAP_IMAGE_BASE + '25.jpg' },
+  26: { name: 'Krutý mráz', image: MAGIC_MAP_IMAGE_BASE + '26.jpg' },
+  27: { name: 'Domov', image: MAGIC_MAP_IMAGE_BASE + '27.jpg' },
+  28: { name: 'Pohyb', image: MAGIC_MAP_IMAGE_BASE + '28.jpg' },
+  29: { name: 'Vstup do života', image: MAGIC_MAP_IMAGE_BASE + '29.jpg' },
+  30: { name: 'Volba', image: MAGIC_MAP_IMAGE_BASE + '30.jpg' },
+  31: { name: 'Vypráhlá poušť', image: MAGIC_MAP_IMAGE_BASE + '31.jpg' },
+  32: { name: 'Zázračná modlitba', image: MAGIC_MAP_IMAGE_BASE + '32.jpg' },
+  33: { name: 'Vrcholky štěstí', image: MAGIC_MAP_IMAGE_BASE + '33.jpg' },
+  34: { name: 'Jiskra', image: MAGIC_MAP_IMAGE_BASE + '34.jpg' },
+  35: { name: 'Vzdělání', image: MAGIC_MAP_IMAGE_BASE + '35.jpg' },
+  36: { name: 'Závazek', image: MAGIC_MAP_IMAGE_BASE + '36.jpg' },
+  37: { name: 'Úklid domu', image: MAGIC_MAP_IMAGE_BASE + '37.jpg' },
+  38: { name: 'Vyléčit zranění', image: MAGIC_MAP_IMAGE_BASE + '38.jpg' },
+  39: { name: 'Chránit poklad', image: MAGIC_MAP_IMAGE_BASE + '39.jpg' },
+  40: { name: 'Následuj vůdce', image: MAGIC_MAP_IMAGE_BASE + '40.jpg' },
+  41: { name: 'Nečekaní hosté', image: MAGIC_MAP_IMAGE_BASE + '41.jpg' },
+  42: { name: 'Otevřeno dokořán', image: MAGIC_MAP_IMAGE_BASE + '42.jpg' },
+  43: { name: 'Detaily, detaily', image: MAGIC_MAP_IMAGE_BASE + '43.jpg' },
+  44: { name: 'Síla', image: MAGIC_MAP_IMAGE_BASE + '44.jpg' },
+  45: { name: 'Smutné objetí', image: MAGIC_MAP_IMAGE_BASE + '45.jpg' },
+  46: { name: 'Rozchod', image: MAGIC_MAP_IMAGE_BASE + '46.jpg' },
+  47: { name: 'Posvátné jezírko', image: MAGIC_MAP_IMAGE_BASE + '47.jpg' },
+  48: { name: 'Studna přání', image: MAGIC_MAP_IMAGE_BASE + '48.jpg' },
+  49: { name: 'Amulet', image: MAGIC_MAP_IMAGE_BASE + '49.jpg' },
+  50: { name: 'Kompas', image: MAGIC_MAP_IMAGE_BASE + '50.jpg' },
+  51: { name: 'Měsíční svit', image: MAGIC_MAP_IMAGE_BASE + '51.jpg' },
+  52: { name: 'Magická hybná síla', image: MAGIC_MAP_IMAGE_BASE + '52.jpg' },
+  53: { name: 'Naslouchání', image: MAGIC_MAP_IMAGE_BASE + '53.jpg' },
+  54: { name: 'Povzbuzení', image: MAGIC_MAP_IMAGE_BASE + '54.jpg' },
+};
 
 // ============ UUID GENERATION ============
 function generateUUID() {
