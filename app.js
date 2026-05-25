@@ -1500,6 +1500,7 @@ async function sendMessage() {
     let msgOutputTokens = 0;
     let cardMarkerBuffer = '';
     let cardRevealCount = 0;
+    let streamingDeckType = null;
     let contextFilterBuffer = '';
     let insideCardDraw = false;
 
@@ -1555,6 +1556,8 @@ async function sendMessage() {
 
       // Strip standalone --- lines from the output
       output = output.replace(/^---\s*$/gm, '');
+      // Strip <deck_choice>...</deck_choice> markers
+      output = output.replace(/<deck_choice>(?:health|magic)<\/deck_choice>/g, '');
       // Collapse 3+ newlines to 2
       output = output.replace(/\n{3,}/g, '\n\n');
       return output;
@@ -1620,12 +1623,15 @@ async function sendMessage() {
                   }
                   break;
                 }
-                // Check if it's a card marker
+                // Check if it's a card marker — supports [CARD:N:name] and [CARD:deck:N:name]
                 const candidate = cardMarkerBuffer.slice(0, closeBracketIdx + 1);
-                const cardMatch = candidate.match(/^\[CARD:(\d+):([^\]]+)\]$/);
+                const cardMatch = candidate.match(/^\[CARD:(?:(health|magic):)?(\d+):([^\]]+)\]$/);
                 if (cardMatch) {
-                  const cardId = parseInt(cardMatch[1], 10);
-                  const cardName = cardMatch[2];
+                  const matchDeck = cardMatch[1] || 'health';
+                  const cardId = parseInt(cardMatch[2], 10);
+                  const cardName = cardMatch[3];
+                  // Track the deck type for the first card (used for spread label)
+                  if (streamingDeckType === null) streamingDeckType = matchDeck;
                   // Flush any pending safe text first
                   if (safeText) {
                     typewriterAppend(safeText);
@@ -1642,13 +1648,15 @@ async function sendMessage() {
                     cardContainer.id = 'cardSpread-' + Date.now();
                     const spreadLabel = document.createElement('div');
                     spreadLabel.className = 'card-spread-label';
-                    spreadLabel.textContent = '✦ Karty zdraví ✦';
+                    spreadLabel.textContent = matchDeck === 'magic'
+                      ? '✦ Kouzelné mapy ✦'
+                      : '✦ Karty zdraví ✦';
                     cardContainer.appendChild(spreadLabel);
                     const timeEl = messageDiv.querySelector('.msg-time');
                     messageDiv.insertBefore(cardContainer, timeEl);
                   }
                   const cardContainer = messageDiv.querySelector('.card-reading-container');
-                  const cardEl = renderHealthCard(cardId, cardName, posIdx, false);
+                  const cardEl = renderHealthCard(cardId, cardName, posIdx, false, matchDeck);
                   cardContainer.appendChild(cardEl);
                   // Animate flip after delay
                   setTimeout(() => {
