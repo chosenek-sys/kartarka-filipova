@@ -20,7 +20,16 @@
   <p>AI asistentka inspirovaná Zdenkou Filipovou. Přihlaste se pro duchovní vedení a podporu.</p>
   <div class="auth-form">
     <div id="registerFields" class="hidden">
-      <input type="text" class="auth-input" id="authName" placeholder="Vaše jméno (volitelné)" autocomplete="name" style="margin-bottom:.5rem">
+      <input type="text" class="auth-input" id="authFirstName" placeholder="Křestní jméno *" autocomplete="given-name" style="margin-bottom:.5rem" required>
+      <input type="text" class="auth-input" id="authLastName" placeholder="Příjmení (volitelné)" autocomplete="family-name" style="margin-bottom:.5rem">
+      <div class="auth-dob-row" style="margin-bottom:.5rem">
+        <label for="authDob" class="auth-dob-label">Datum narození (volitelné):</label>
+        <input type="date" class="auth-input" id="authDob" style="max-width:200px">
+      </div>
+      <label class="auth-gdpr-label" style="margin-bottom:.75rem;display:flex;align-items:flex-start;gap:.5rem;font-size:.8rem;color:rgba(255,255,255,.6)">
+        <input type="checkbox" id="authGdpr" style="margin-top:3px">
+        <span>Souhlasím se zpracováním osobních údajů (datum narození) dle GDPR pro účely duchovního poradenství.</span>
+      </label>
     </div>
     <input type="email" class="auth-input" id="authEmail" placeholder="Email" autocomplete="email">
     <input type="password" class="auth-input" id="authPassword" placeholder="Heslo" autocomplete="current-password">
@@ -160,26 +169,26 @@
       <p class="modal-subtitle">Vyberte balíček kreditů</p>
       <div class="package-grid">
         <div class="package-card" onclick="purchaseCredits('small')">
-          <div class="package-amount">10</div>
+          <div class="package-amount">15</div>
           <div class="package-label">kreditů</div>
           <div class="package-price">49 Kč</div>
-          <div class="package-detail">~10 textových odpovědí</div>
+          <div class="package-detail">~15 textových / 7 kart</div>
         </div>
         <div class="package-card popular" onclick="purchaseCredits('medium')">
           <div class="package-badge">Oblíbené</div>
-          <div class="package-amount">30</div>
+          <div class="package-amount">40</div>
           <div class="package-label">kreditů</div>
-          <div class="package-price">129 Kč</div>
-          <div class="package-detail">~30 text / 6 hlasových</div>
+          <div class="package-price">99 Kč</div>
+          <div class="package-detail">~40 text / 20 kart</div>
         </div>
         <div class="package-card" onclick="purchaseCredits('large')">
           <div class="package-amount">100</div>
           <div class="package-label">kreditů</div>
-          <div class="package-price">349 Kč</div>
-          <div class="package-detail">~100 text / 20 hlasových</div>
+          <div class="package-price">249 Kč</div>
+          <div class="package-detail">~100 text / 50 kart</div>
         </div>
       </div>
-      <p class="modal-footer-text">1 kredit = textová odpověď · 5 kreditů = hlasová odpověď</p>
+      <p class="modal-footer-text">1 kredit = textová odpověď · 2 kredity = kartový výklad · 5 kreditů = hlasová odpověď</p>
     </div>
 
     <div class="purchase-status hidden" id="purchaseStatus"></div>

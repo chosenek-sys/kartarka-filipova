@@ -92,7 +92,12 @@ function renderSimpleMarkdown(text) {
 }
 
 const CARD_POSITIONS = ['Minulost', 'Přítomnost', 'Budoucnost'];
-const CARD_MARKER_REGEX = /\[CARD:(\d+):([^\]]+)\]/g;
+// Supports both old format [CARD:N:name] and new [CARD:deck:N:name]
+const CARD_MARKER_REGEX = /\[CARD:(?:(health|magic):)?(\d+):([^\]]+)\]/g;
+
+// Magic map card images — hosted on GitHub Pages alongside health cards
+const MAGIC_MAP_IMAGE_BASE = 'https://chosenek-sys.github.io/kartarka-filipova/images/karty_mapy/';
+const MAGIC_MAP_DATA = {}; // Will be populated when images are uploaded
 
 // ============ UUID GENERATION ============
 function generateUUID() {
@@ -152,11 +157,18 @@ async function handleRegister() {
   const email = document.getElementById('authEmail').value.trim();
   const password = document.getElementById('authPassword').value;
   const passwordConfirm = document.getElementById('authPasswordConfirm').value;
-  const name = document.getElementById('authName').value.trim();
+  const firstName = document.getElementById('authFirstName').value.trim();
+  const lastName = document.getElementById('authLastName')?.value.trim() || '';
+  const dob = document.getElementById('authDob')?.value || '';
+  const gdprConsent = document.getElementById('authGdpr')?.checked || false;
   const errorEl = document.getElementById('authError');
   errorEl.textContent = '';
   errorEl.style.color = '';
 
+  if (!firstName) {
+    errorEl.textContent = 'Vyplňte prosím své křestní jméno.';
+    return;
+  }
   if (!email || !password) {
     errorEl.textContent = 'Vyplňte email a heslo.';
     return;
@@ -169,12 +181,24 @@ async function handleRegister() {
     errorEl.textContent = 'Hesla se neshodují.';
     return;
   }
+  if (dob && !gdprConsent) {
+    errorEl.textContent = 'Pro zpracování data narození je nutný souhlas s GDPR.';
+    return;
+  }
 
   setAuthLoading(true);
+  const displayName = lastName ? `${firstName} ${lastName}` : firstName;
   const { data, error } = await supabaseClient.auth.signUp({
     email,
     password,
-    options: { data: { display_name: name || email.split('@')[0] } },
+    options: {
+      data: {
+        display_name: displayName,
+        first_name: firstName,
+        last_name: lastName || null,
+        date_of_birth: dob || null,
+      },
+    },
   });
   setAuthLoading(false);
 
@@ -192,14 +216,17 @@ async function handleRegister() {
       errorEl.textContent = `Registrace selhala: ${error.message || 'Neznámá chyba'}`;
     }
   } else if (data?.user?.identities?.length === 0) {
-    // Supabase returns fake success with empty identities when user already exists
     errorEl.textContent = 'Tento email je již zaregistrován. Zkuste se přihlásit.';
   } else {
     errorEl.style.color = '#22c55e';
     errorEl.textContent = 'Registrace úspěšná! Zkontrolujte email pro potvrzení.';
 
     // Disable form to prevent re-submission
-    document.getElementById('authName').disabled = true;
+    document.getElementById('authFirstName').disabled = true;
+    const lastNameEl = document.getElementById('authLastName');
+    if (lastNameEl) lastNameEl.disabled = true;
+    const dobEl = document.getElementById('authDob');
+    if (dobEl) dobEl.disabled = true;
     document.getElementById('authEmail').disabled = true;
     document.getElementById('authPassword').disabled = true;
     document.getElementById('authPasswordConfirm').disabled = true;
@@ -242,7 +269,11 @@ function toggleAuthMode() {
   const errorEl = document.getElementById('authError');
 
   // Re-enable all fields (may have been disabled after successful registration)
-  document.getElementById('authName').disabled = false;
+  document.getElementById('authFirstName').disabled = false;
+  const lastNameEl = document.getElementById('authLastName');
+  if (lastNameEl) lastNameEl.disabled = false;
+  const dobEl = document.getElementById('authDob');
+  if (dobEl) dobEl.disabled = false;
   document.getElementById('authEmail').disabled = false;
   document.getElementById('authPassword').disabled = false;
   confirmField.disabled = false;
@@ -518,13 +549,25 @@ function showWelcome() {
     <div class="welcome-msg">
       <div class="icon">✨</div>
       <h3>Vítejte u AI Zdenky</h3>
-      <p>Jsem AI asistentka inspirovaná Zdenkou Filipovou. Mohu vám poskytnout duchovní vedení a podporu.</p>
-      <div class="suggestions">
-        <div class="suggestion" onclick="sendSuggestion(this)">Jak mohu změnit svůj život?</div>
-        <div class="suggestion" onclick="sendSuggestion(this)">Potřebuji radu ohledně vztahu</div>
-        <div class="suggestion" onclick="sendSuggestion(this)">Cítím se ztracená, co mi poradíte?</div>
-        <div class="suggestion" onclick="sendSuggestion(this)">Jak najít vnitřní klid?</div>
-        <div class="suggestion" onclick="sendSuggestion(this)">🃏 Vylož mi karty zdraví</div>
+      <p>Jsem AI asistentka inspirovaná Zdenkou Filipovou. Mohu vám poskytnout duchovní vedení, kartové výklady a podporu na vaší cestě.</p>
+
+      <div class="welcome-section">
+        <div class="welcome-section-title">🔮 Zeptejte se na cokoliv</div>
+        <div class="suggestions">
+          <div class="suggestion" onclick="sendSuggestion(this)">Jak mohu změnit svůj život?</div>
+          <div class="suggestion" onclick="sendSuggestion(this)">Potřebuji radu ohledně vztahu</div>
+          <div class="suggestion" onclick="sendSuggestion(this)">Cítím se ztracená, co mi poradíte?</div>
+          <div class="suggestion" onclick="sendSuggestion(this)">Jak najít vnitřní klid?</div>
+        </div>
+      </div>
+
+      <div class="welcome-section">
+        <div class="welcome-section-title">🃏 Kartové výklady</div>
+        <div class="suggestions card-suggestions">
+          <div class="suggestion suggestion-card" onclick="sendSuggestion(this)">🗺️ Vylož mi kouzelné mapy</div>
+          <div class="suggestion suggestion-card" onclick="sendSuggestion(this)">💊 Vylož mi karty zdraví</div>
+          <div class="suggestion suggestion-card" onclick="sendSuggestion(this)">🃏 Vylož mi karty</div>
+        </div>
       </div>
     </div>`;
 }
@@ -1128,28 +1171,34 @@ function addMessage(role, content, withAudio = false) {
       messageDiv.appendChild(preBubble);
     }
 
+    // Determine deck type from markers (default to health for backward compat)
+    const deckType = markers[0]?.[1] || 'health';
+
     // Render card spread container
     if (markers.length > 0) {
       const cardContainer = document.createElement('div');
       cardContainer.className = 'card-reading-container';
       const spreadLabel = document.createElement('div');
       spreadLabel.className = 'card-spread-label';
-      spreadLabel.textContent = '✦ Karty zdraví ✦';
+      spreadLabel.textContent = deckType === 'magic'
+        ? '✦ Kouzelné mapy ✦'
+        : '✦ Karty zdraví ✦';
       cardContainer.appendChild(spreadLabel);
 
       markers.forEach((match, index) => {
-        const cardId = parseInt(match[1], 10);
-        const cardName = match[2];
-        const cardEl = renderHealthCard(cardId, cardName, index, true);
+        const cardId = parseInt(match[2], 10);
+        const cardName = match[3];
+        const matchDeck = match[1] || 'health';
+        const cardEl = renderHealthCard(cardId, cardName, index, true, matchDeck);
         cardContainer.appendChild(cardEl);
       });
       messageDiv.appendChild(cardContainer);
     }
 
-    // Narration text segments (text after each card marker)
-    // segments layout: [pre, id1, name1, text1, id2, name2, text2, ...]
+    // Narration text segments — regex has 3 capture groups: (deck?)(id)(name)
+    // segments layout: [pre, deck1, id1, name1, text1, deck2, id2, name2, text2, ...]
     for (let i = 0; i < markers.length; i++) {
-      const narrationIdx = 1 + i * 3 + 2; // skip id + name groups
+      const narrationIdx = 1 + i * 4 + 3; // skip deck + id + name groups
       const narration = (segments[narrationIdx] || '').trim();
       if (narration) {
         const narDiv = document.createElement('div');
@@ -1188,7 +1237,9 @@ function addMessage(role, content, withAudio = false) {
 // ============ CARD HELPERS ============
 function stripInternalContext(text) {
   // Remove <card_draw>...</card_draw> blocks (may span multiple lines)
-  let cleaned = text.replace(/<card_draw>[\s\S]*?<\/card_draw>\s*/gi, '');
+  let cleaned = text.replace(/<card_draw[^>]*>[\s\S]*?<\/card_draw>\s*/gi, '');
+  // Remove <deck_choice>...</deck_choice> internal markers
+  cleaned = cleaned.replace(/<deck_choice>(?:health|magic)<\/deck_choice>/g, '');
   // Remove standalone --- separators (horizontal rules the AI may add)
   cleaned = cleaned.replace(/^---\s*$/gm, '');
   // Collapse excessive blank lines (3+ newlines → 2)
@@ -1197,12 +1248,13 @@ function stripInternalContext(text) {
 }
 
 function stripCardMarkers(text) {
-  return stripInternalContext(text).replace(/\[CARD:\d+:[^\]]+\]\n?/g, '');
+  return stripInternalContext(text).replace(/\[CARD:(?:(?:health|magic):)?\d+:[^\]]+\]\n?/g, '');
 }
 
-function renderHealthCard(cardId, cardName, positionIndex, preFlipped) {
+function renderHealthCard(cardId, cardName, positionIndex, preFlipped, deckType = 'health') {
   const card = document.createElement('div');
   card.className = 'health-card';
+  if (deckType === 'magic') card.classList.add('magic-card');
   if (preFlipped) card.classList.add('card-flipped');
 
   const posLabel = document.createElement('div');
@@ -1217,7 +1269,11 @@ function renderHealthCard(cardId, cardName, positionIndex, preFlipped) {
   const front = document.createElement('div');
   front.className = 'card-front';
 
-  const cardData = CARD_DATA[cardId];
+  // Pick correct data source based on deck type
+  const cardData = deckType === 'magic'
+    ? (MAGIC_MAP_DATA[cardId] || null)
+    : (CARD_DATA[cardId] || null);
+
   if (cardData && cardData.image) {
     const img = document.createElement('img');
     img.src = cardData.image;
@@ -1236,10 +1292,10 @@ function renderHealthCard(cardId, cardName, positionIndex, preFlipped) {
   if (!cardData || !cardData.image) fallback.style.display = 'flex';
   const fallbackIcon = document.createElement('div');
   fallbackIcon.className = 'card-fallback-icon';
-  fallbackIcon.textContent = '🃏';
+  fallbackIcon.textContent = deckType === 'magic' ? '🗺️' : '🃏';
   const fallbackName = document.createElement('div');
   fallbackName.className = 'card-fallback-name';
-  fallbackName.textContent = cardName; // textContent = XSS safe
+  fallbackName.textContent = cardName;
   fallback.appendChild(fallbackIcon);
   fallback.appendChild(fallbackName);
   front.appendChild(fallback);
@@ -1249,7 +1305,7 @@ function renderHealthCard(cardId, cardName, positionIndex, preFlipped) {
   label.className = 'card-label';
   const labelText = document.createElement('div');
   labelText.className = 'card-label-text';
-  labelText.textContent = cardName; // textContent = XSS safe
+  labelText.textContent = cardName;
   label.appendChild(labelText);
   front.appendChild(label);
 
@@ -1263,6 +1319,7 @@ function renderHealthCard(cardId, cardName, positionIndex, preFlipped) {
   // Back face (shown initially)
   const back = document.createElement('div');
   back.className = 'card-back';
+  if (deckType === 'magic') back.classList.add('magic-back');
 
   inner.appendChild(front);
   inner.appendChild(back);

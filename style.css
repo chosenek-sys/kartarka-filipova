@@ -467,3 +467,22 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
 .purchase-toast.fade-out{animation:toastFadeOut .5s forwards}
 @keyframes toastSlideIn{from{opacity:0;transform:translateX(-50%) translateY(-20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 @keyframes toastFadeOut{to{opacity:0;transform:translateX(-50%) translateY(-20px)}}
+
+/* Welcome Sections */
+.welcome-section{margin-top:1rem}
+.welcome-section-title{font-size:.78rem;font-weight:600;color:var(--brown);letter-spacing:.5px;margin-bottom:.4rem}
+.card-suggestions{gap:.4rem}
+.suggestion-card{background:linear-gradient(135deg,rgba(201,169,110,.08),rgba(107,58,42,.04))!important;border-color:rgba(201,169,110,.25)!important}
+.suggestion-card:hover{border-color:var(--gold)!important;color:var(--brown-dark)!important;background:linear-gradient(135deg,rgba(201,169,110,.15),rgba(107,58,42,.06))!important}
+
+/* Magic Map Card Styling */
+.magic-card .card-back.magic-back{background:linear-gradient(135deg,#2a4858,#1a3040);border-color:#4a8ca8}
+.magic-card .card-back.magic-back::before{content:'🗺️';font-size:1.8rem;animation:card-pulse 2s ease-in-out infinite}
+.magic-card .card-back.magic-back::after{border-color:rgba(74,140,168,.2)}
+
+/* Auth DOB/GDPR Fields */
+.auth-dob-row{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
+.auth-dob-label{font-size:.82rem;color:var(--muted);white-space:nowrap}
+.auth-dob-row .auth-input{flex:1}
+input[type="date"].auth-input{font-family:'Inter',sans-serif;color:var(--text)}
+input[type="date"].auth-input::-webkit-calendar-picker-indicator{filter:invert(.3)}
