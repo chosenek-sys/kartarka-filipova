@@ -630,7 +630,7 @@ function showWelcome() {
 // ============ SESSION TRACKING ============
 const sessionStats = {
   totalInputTokens: 0, totalOutputTokens: 0, totalTtsChars: 0, messageCount: 0,
-  creditBalance: null,
+  creditBalance: null, totalEarned: null,
 };
 
 function updateCreditDisplay() {
@@ -641,6 +641,24 @@ function updateCreditDisplay() {
   // Warn/danger thresholds based on initial 30 credits
   el.classList.toggle('warn', balance <= 7 && balance > 3);
   el.classList.toggle('danger', balance <= 3);
+}
+
+function updateFreeCreditsGate() {
+  const isFreeOnly = sessionStats.totalEarned !== null && sessionStats.totalEarned <= 10;
+  const textBtn = document.getElementById('toggleText');
+  if (textBtn) {
+    if (isFreeOnly && responseMode !== 'text') {
+      textBtn.disabled = true;
+      textBtn.title = 'Pro textové zprávy si prosím zakupte kredity';
+    } else if (isFreeOnly && responseMode === 'text') {
+      setMode('audio');
+      textBtn.disabled = true;
+      textBtn.title = 'Pro textové zprávy si prosím zakupte kredity';
+    } else {
+      textBtn.disabled = false;
+      textBtn.title = '';
+    }
+  }
 }
 
 // ============ TYPEWRITER ENGINE ============
@@ -703,7 +721,9 @@ async function fetchCredits() {
     // Virtual credit balance (primary display)
     if (data.userCredits) {
       sessionStats.creditBalance = data.userCredits.balance;
+      sessionStats.totalEarned = data.userCredits.total_earned;
       updateCreditDisplay();
+      updateFreeCreditsGate();
     } else {
       // Fallback for old backend that doesn't return userCredits yet
       const el = document.getElementById('userCredits');
@@ -1362,6 +1382,10 @@ function renderHealthCard(cardId, cardName, positionIndex, preFlipped, deckType 
   labelText.className = 'card-label-text';
   labelText.textContent = cardName;
   label.appendChild(labelText);
+  const tagline = document.createElement('div');
+  tagline.className = 'card-tagline';
+  tagline.textContent = 'Změň svůj život';
+  label.appendChild(tagline);
   front.appendChild(label);
 
   // Shimmer effect on reveal
@@ -1451,6 +1475,7 @@ async function sendMessage() {
       body: JSON.stringify({
         messages: conversationHistory,
         conversation_id: currentConversationId,
+        responseMode: responseMode,
       }),
     });
 

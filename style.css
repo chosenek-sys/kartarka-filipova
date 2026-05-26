@@ -285,6 +285,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
 @keyframes card-pulse{0%,100%{opacity:.2;transform:scale(1)}50%{opacity:.4;transform:scale(1.05)}}
 .card-label{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(74,37,24,.85));padding:.6rem .5rem .4rem;text-align:center}
 .card-label-text{color:var(--white);font-family:'Cinzel',serif;font-size:.75rem;font-weight:600;letter-spacing:.5px;text-shadow:0 1px 3px rgba(0,0,0,.3)}
+.card-tagline{font-size:.55rem;color:rgba(255,255,255,.7);letter-spacing:1.5px;text-transform:uppercase;margin-top:.15rem;font-family:'Cinzel',serif}
 .card-shimmer{position:absolute;inset:0;background:linear-gradient(105deg,transparent 40%,rgba(201,169,110,.25) 50%,transparent 60%);animation:shimmer 1.5s ease-out forwards;border-radius:12px;pointer-events:none;z-index:2}
 @keyframes shimmer{0%{transform:translateX(-100%);opacity:1}100%{transform:translateX(100%);opacity:0}}
 .card-narration{background:var(--white);border:1px solid rgba(107,58,42,.1);border-radius:var(--radius);padding:.8rem 1.1rem;font-size:.92rem;line-height:1.65;color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.04);margin-top:.4rem;border-left:3px solid var(--gold)}
