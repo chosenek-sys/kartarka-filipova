@@ -85,6 +85,39 @@
         <div class="stat-value" id="statCredits">—</div>
         <div class="stat-label">Kreditů v oběhu</div>
       </div>
+      <div class="stat-card">
+        <div class="stat-icon">💳</div>
+        <div class="stat-value" id="statRevenue">—</div>
+        <div class="stat-label">Tržby (CZK)</div>
+      </div>
+    </div>
+
+    <!-- Revenue Section -->
+    <div class="admin-section" id="revenueSection">
+      <div class="admin-section-header">
+        <h2>💳 Tržby</h2>
+        <select class="admin-select" id="revenuePeriod" onchange="loadRevenue()">
+          <option value="7">Posledních 7 dní</option>
+          <option value="30" selected>Posledních 30 dní</option>
+          <option value="90">Posledních 90 dní</option>
+          <option value="365">Celý rok</option>
+        </select>
+      </div>
+      <div class="revenue-summary" id="revenueSummary"></div>
+      <div class="admin-table-wrap">
+        <table class="admin-table" id="revenueTable">
+          <thead>
+            <tr>
+              <th>Datum</th>
+              <th>Email</th>
+              <th>Kredity</th>
+              <th>Cena (CZK)</th>
+              <th>Typ</th>
+            </tr>
+          </thead>
+          <tbody id="revenueBody"></tbody>
+        </table>
+      </div>
     </div>
 
     <!-- User Table -->
@@ -162,6 +195,6 @@
   </div>
 </div>
 
-<script src="admin.js?v=3"></script>
+<script src="admin.js?v=overhaul3"></script>
 </body>
 </html>

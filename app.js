@@ -12,6 +12,7 @@ let modeLockedForConversation = false;
 let conversationHistory = [];
 let isGenerating = false;
 let currentConversationId = null;
+let isAdmin = false;
 
 // ============ HEALTH CARD DATA ============
 const CARD_IMAGE_BASE = 'images/karty_zdravi/';
@@ -411,14 +412,11 @@ function showChat(user) {
   const userNameEl = document.getElementById('userName');
   if (userNameEl) userNameEl.textContent = user.email;
 
-  // Show admin link for admin users
+  // Admin detection
+  isAdmin = user.app_metadata?.role === 'admin';
   const adminLink = document.getElementById('adminLink');
   if (adminLink) {
-    if (user.app_metadata?.role === 'admin') {
-      adminLink.classList.remove('hidden');
-    } else {
-      adminLink.classList.add('hidden');
-    }
+    adminLink.classList.toggle('hidden', !isAdmin);
   }
 
   // Start fresh with welcome screen
@@ -1765,8 +1763,8 @@ async function sendMessage() {
         autoTitleConversation(userText);
       }
 
-      // Per-message cost footer
-      if (messageDiv && (msgInputTokens > 0 || msgOutputTokens > 0)) {
+      // Per-message cost footer (admin-only)
+      if (isAdmin && messageDiv && (msgInputTokens > 0 || msgOutputTokens > 0)) {
         const costDiv = document.createElement('div');
         costDiv.className = 'msg-cost';
         const totalTokens = msgInputTokens + msgOutputTokens;

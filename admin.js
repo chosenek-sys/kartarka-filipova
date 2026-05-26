@@ -212,7 +212,7 @@ async function showAdminDashboard() {
   $('adminEmail').textContent = session?.user?.email || '';
 
   // Load data
-  await Promise.all([loadStats(), loadUsers()]);
+  await Promise.all([loadStats(), loadUsers(), loadRevenue()]);
 }
 
 // ============================================================
@@ -228,6 +228,54 @@ async function loadStats() {
     $('statCredits').textContent = data.credits.totalBalance.toLocaleString('cs-CZ');
   } catch (error) {
     console.error('Failed to load stats:', error);
+  }
+}
+
+// ============================================================
+// Revenue
+// ============================================================
+async function loadRevenue() {
+  const days = $('revenuePeriod')?.value || '30';
+  try {
+    const data = await adminFetch('revenue', { days });
+    $('statRevenue').textContent = data.totalRevenueCzk.toLocaleString('cs-CZ') + ' Kč';
+
+    const summaryEl = $('revenueSummary');
+    if (summaryEl) {
+      const pkgs = Object.entries(data.byPackage || {}).map(([label, info]) =>
+        `<span class="revenue-pkg">${label}: ${info.count}× (${info.czk.toLocaleString('cs-CZ')} Kč)</span>`
+      ).join(' · ');
+
+      summaryEl.innerHTML = `
+        <div class="revenue-stats">
+          <span><strong>${data.totalPurchases}</strong> nákupů</span> ·
+          <span><strong>${data.uniqueBuyers}</strong> kupujících</span> ·
+          <span><strong>${data.totalRevenueCzk.toLocaleString('cs-CZ')} Kč</strong> celkem</span>
+        </div>
+        ${pkgs ? `<div class="revenue-packages">${pkgs}</div>` : ''}`;
+    }
+
+    const tbody = $('revenueBody');
+    if (tbody) {
+      if (!data.recentPurchases || data.recentPurchases.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="admin-empty">Žádné nákupy v tomto období.</td></tr>';
+      } else {
+        tbody.innerHTML = data.recentPurchases.map(p => {
+          const type = p.reason?.includes('subscription') ? 'Předplatné' : 'Jednorázový';
+          return `
+            <tr>
+              <td>${formatDate(p.date)}</td>
+              <td>${escapeHtml(p.email)}</td>
+              <td>${p.credits}</td>
+              <td>${p.priceCzk.toLocaleString('cs-CZ')} Kč</td>
+              <td>${type}</td>
+            </tr>`;
+        }).join('');
+      }
+    }
+  } catch (error) {
+    console.error('Failed to load revenue:', error);
+    $('statRevenue').textContent = '—';
   }
 }
 
@@ -590,6 +638,7 @@ window.changeUserRole = changeUserRole;
 window.loadConversationMessages = loadConversationMessages;
 window.closeMessageViewer = closeMessageViewer;
 window.debounceSearch = debounceSearch;
+window.loadRevenue = loadRevenue;
 
 // Start
 initAdmin();

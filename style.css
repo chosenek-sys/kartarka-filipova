@@ -371,6 +371,15 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
 .page-btn:hover{border-color:var(--brown);color:var(--brown)}
 .page-btn.active{background:rgba(107,58,42,.1);border-color:var(--brown);color:var(--brown);font-weight:600}
 
+/* Revenue */
+.admin-select{background:var(--white);border:1px solid rgba(107,58,42,.15);border-radius:50px;padding:.4rem .8rem;font-family:'Inter',sans-serif;font-size:.8rem;color:var(--text);cursor:pointer;outline:none}
+.admin-select:focus{border-color:var(--brown)}
+.revenue-summary{margin-bottom:.8rem;padding:.8rem 1rem;background:rgba(107,58,42,.03);border-radius:var(--radius);border:1px solid rgba(107,58,42,.08)}
+.revenue-stats{font-size:.85rem;color:var(--text)}
+.revenue-stats strong{color:var(--brown)}
+.revenue-packages{margin-top:.4rem;font-size:.8rem;color:var(--muted)}
+.revenue-pkg{white-space:nowrap}
+
 /* User Detail Panel */
 .admin-detail{background:var(--white);border:1px solid rgba(107,58,42,.1);border-radius:var(--radius);margin-bottom:1.5rem;box-shadow:0 4px 20px rgba(0,0,0,.06);animation:slideUp .3s ease-out}
 .admin-detail.hidden{display:none}
