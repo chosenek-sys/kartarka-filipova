@@ -274,6 +274,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
 
 /* ============ HEALTH CARDS ============ */
 .card-reading-container{display:flex;gap:1.2rem;justify-content:center;flex-wrap:wrap;margin:.8rem 0;padding:.6rem 0}
+.message:has(.card-reading-container){width:82%}
 .card-spread-label{width:100%;text-align:center;font-family:'Cinzel',serif;font-size:.85rem;color:var(--brown);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:.2rem;opacity:.7}
 .health-card{width:160px;perspective:800px;cursor:default}
 .card-position{text-align:center;font-size:.7rem;color:var(--muted);margin-bottom:.3rem;font-weight:500;letter-spacing:.5px;text-transform:uppercase}

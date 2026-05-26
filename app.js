@@ -688,7 +688,7 @@ function typewriterDrain() {
   state.buffer = state.buffer.slice(chunkSize);
   state.rendered += chunk;
   if (state.bubbleEl) {
-    state.bubbleEl.textContent = state.rendered;
+    state.bubbleEl.innerHTML = renderSimpleMarkdown(state.rendered);
     document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight;
   }
   state.animFrameId = requestAnimationFrame(typewriterDrain);
