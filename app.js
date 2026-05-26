@@ -503,8 +503,15 @@ async function loadConversation(conversationId) {
     if (data.messages?.length) {
       for (const msg of data.messages) {
         const msgDiv = addMessage(msg.role, msg.content);
-        // Add replay button to historical assistant messages
         if (msg.role === 'assistant') {
+          if (msg.audio_path) {
+            const audioContainer = document.createElement('div');
+            audioContainer.id = 'audioContainer-' + msg.id;
+            const timeEl = msgDiv.querySelector('.msg-time');
+            msgDiv.insertBefore(audioContainer, timeEl);
+            loadStoredAudio(audioContainer, msg.audio_path);
+            msgDiv.classList.add('voice-only');
+          }
           addReplayButton(msgDiv, msg.content);
         }
       }
@@ -1820,7 +1827,7 @@ async function generateAudio(text, container) {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`,
       },
-      body: JSON.stringify({ text }),
+      body: JSON.stringify({ text, conversation_id: currentConversationId }),
     });
 
     if (response.status === 429) {
@@ -1850,37 +1857,60 @@ async function generateAudio(text, container) {
     }
     const audioUrl = URL.createObjectURL(audioBlob);
     const audio = new Audio(audioUrl);
-
-    container.innerHTML = `
-      <div class="audio-player">
-        <button class="audio-btn" onclick="toggleAudioPlay(this)" data-state="paused">▶</button>
-        <div class="audio-progress"><div class="audio-progress-fill"></div></div>
-        <span class="audio-time">0:00</span>
-      </div>`;
-
-    const playerEl = container.querySelector('.audio-player');
-    const progressFill = playerEl.querySelector('.audio-progress-fill');
-    const timeEl = playerEl.querySelector('.audio-time');
-    const btn = playerEl.querySelector('.audio-btn');
-    btn._audio = audio;
-
-    audio.addEventListener('timeupdate', () => {
-      if (audio.duration) {
-        progressFill.style.width = (audio.currentTime / audio.duration) * 100 + '%';
-        const remaining = audio.duration - audio.currentTime;
-        timeEl.textContent = Math.floor(remaining / 60) + ':' + Math.floor(remaining % 60).toString().padStart(2, '0');
-      }
-    });
-    audio.addEventListener('ended', () => { btn.textContent = '▶'; btn.dataset.state = 'paused'; progressFill.style.width = '0%'; });
-    audio.addEventListener('loadedmetadata', () => {
-      timeEl.textContent = Math.floor(audio.duration / 60) + ':' + Math.floor(audio.duration % 60).toString().padStart(2, '0');
-    });
+    renderAudioPlayer(container, audio);
 
     fetchCredits();
   } catch (error) {
     console.error('TTS error:', error);
     container.innerHTML = '<div class="audio-loading" style="color:#ef4444">❌ Chyba při generování hlasu</div>';
   }
+}
+
+async function loadStoredAudio(container, audioPath) {
+  container.innerHTML = '<div class="audio-loading"><div class="spinner"></div> Načítám audio...</div>';
+  const token = await getAccessToken();
+  try {
+    const res = await fetch(`${API_BASE}/api/tts-url?path=${encodeURIComponent(audioPath)}`, {
+      headers: { 'Authorization': `Bearer ${token}` },
+    });
+    if (!res.ok) {
+      container.innerHTML = '<div class="audio-loading" style="color:#999">🔊 Audio již není dostupné</div>';
+      return;
+    }
+    const { url } = await res.json();
+    const audio = new Audio(url);
+    renderAudioPlayer(container, audio);
+  } catch (err) {
+    console.error('Stored audio load error:', err);
+    container.innerHTML = '<div class="audio-loading" style="color:#999">🔊 Chyba při načítání audia</div>';
+  }
+}
+
+function renderAudioPlayer(container, audio) {
+  container.innerHTML = `
+    <div class="audio-player">
+      <button class="audio-btn" onclick="toggleAudioPlay(this)" data-state="paused">▶</button>
+      <div class="audio-progress"><div class="audio-progress-fill"></div></div>
+      <span class="audio-time">0:00</span>
+    </div>`;
+
+  const playerEl = container.querySelector('.audio-player');
+  const progressFill = playerEl.querySelector('.audio-progress-fill');
+  const timeEl = playerEl.querySelector('.audio-time');
+  const btn = playerEl.querySelector('.audio-btn');
+  btn._audio = audio;
+
+  audio.addEventListener('timeupdate', () => {
+    if (audio.duration) {
+      progressFill.style.width = (audio.currentTime / audio.duration) * 100 + '%';
+      const remaining = audio.duration - audio.currentTime;
+      timeEl.textContent = Math.floor(remaining / 60) + ':' + Math.floor(remaining % 60).toString().padStart(2, '0');
+    }
+  });
+  audio.addEventListener('ended', () => { btn.textContent = '▶'; btn.dataset.state = 'paused'; progressFill.style.width = '0%'; });
+  audio.addEventListener('loadedmetadata', () => {
+    timeEl.textContent = Math.floor(audio.duration / 60) + ':' + Math.floor(audio.duration % 60).toString().padStart(2, '0');
+  });
 }
 
 function toggleAudioPlay(btn) {
