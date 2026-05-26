@@ -517,6 +517,15 @@ async function loadConversation(conversationId) {
       showWelcome();
     }
 
+    // Lock mode if conversation already has messages
+    if (data.messages?.length) {
+      const hasAudio = data.messages.some(m => m.audio_path);
+      setMode(hasAudio ? 'audio' : 'text');
+      lockMode();
+    } else {
+      unlockMode();
+    }
+
     // Update sidebar active state
     document.querySelectorAll('.conv-item').forEach(el => {
       el.classList.toggle('active', el.dataset.id === conversationId);
@@ -1206,18 +1215,14 @@ function setMode(mode) {
 
 function lockMode() {
   modeLockedForConversation = true;
-  const textBtn = document.getElementById('toggleText');
-  const audioBtn = document.getElementById('toggleAudio');
-  if (textBtn) { textBtn.disabled = true; textBtn.style.opacity = '0.5'; }
-  if (audioBtn) { audioBtn.disabled = true; audioBtn.style.opacity = '0.5'; }
+  const toggle = document.querySelector('.response-toggle');
+  if (toggle) toggle.style.display = 'none';
 }
 
 function unlockMode() {
   modeLockedForConversation = false;
-  const textBtn = document.getElementById('toggleText');
-  const audioBtn = document.getElementById('toggleAudio');
-  if (textBtn) { textBtn.disabled = false; textBtn.style.opacity = ''; }
-  if (audioBtn) { audioBtn.disabled = false; audioBtn.style.opacity = ''; }
+  const toggle = document.querySelector('.response-toggle');
+  if (toggle) toggle.style.display = '';
   updateFreeCreditsGate();
 }
 
@@ -1644,6 +1649,11 @@ async function sendMessage() {
               const bubble = messageDiv.querySelector('.msg-bubble');
               bubble.classList.add('streaming');
               typewriterState.bubbleEl = bubble;
+              if (responseMode === 'audio') {
+                messageDiv.classList.add('voice-only');
+                const ac = messageDiv.querySelector('[id^="audioContainer"]');
+                if (ac) ac.innerHTML = '<div class="audio-loading"><div class="spinner"></div> AI Zdenka odpovídá...</div>';
+              }
             }
             // Filter out internal context before processing card markers
             const filteredText = filterInternalContext(newText);
@@ -1815,7 +1825,7 @@ async function sendMessage() {
 
 // ============ AUDIO ============
 async function generateAudio(text, container) {
-  container.innerHTML = '<div class="audio-loading"><div class="spinner"></div> Připravuji hlasovou odpověď...</div>';
+  container.innerHTML = '<div class="audio-loading"><div class="spinner"></div> AI Zdenka odpovídá...</div>';
   const token = await getAccessToken();
 
   try {
