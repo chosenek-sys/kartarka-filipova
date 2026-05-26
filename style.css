@@ -149,17 +149,21 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
 .send-btn{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--brown),var(--brown-light));border:none;color:var(--white);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.1rem;transition:all .3s;flex-shrink:0}
 .send-btn:hover{transform:scale(1.08);box-shadow:0 4px 16px rgba(107,58,42,.25)}
 .send-btn:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none}
-.response-toggle{display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem}
-.toggle-prompt{font-size:.75rem;font-weight:600;color:var(--brown);white-space:nowrap}
-.toggle-btn{padding:.3rem .7rem;border-radius:50px;font-size:.75rem;font-weight:500;border:1px solid rgba(107,58,42,.15);background:transparent;color:var(--muted);cursor:pointer;transition:all .3s;font-family:'Inter',sans-serif}
-.toggle-btn.active{background:rgba(107,58,42,.1);border-color:var(--brown);color:var(--brown)}
-.toggle-btn:hover:not(.active){border-color:rgba(107,58,42,.25);color:var(--text)}
+.mode-modal{text-align:center;padding:1.8rem 1.5rem;max-width:340px}
+.mode-modal h3{margin:0 0 .3rem;font-size:1.05rem;color:var(--brown)}
+.mode-modal-note{margin:0 0 1.2rem;font-size:.78rem;color:var(--muted)}
+.mode-modal-buttons{display:flex;gap:.8rem;justify-content:center}
+.mode-choice-btn{display:flex;flex-direction:column;align-items:center;gap:.3rem;padding:1rem 1.5rem;border-radius:var(--radius);border:2px solid rgba(107,58,42,.15);background:var(--white);cursor:pointer;transition:all .25s;font-family:'Inter',sans-serif;min-width:120px}
+.mode-choice-btn:hover{border-color:var(--brown);background:rgba(107,58,42,.06);transform:translateY(-2px);box-shadow:0 4px 12px rgba(107,58,42,.12)}
+.mode-choice-btn:disabled,.mode-choice-btn.mode-choice-disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none}
+.mode-choice-icon{font-size:1.8rem}
+.mode-choice-label{font-size:.95rem;font-weight:600;color:var(--text)}
+.mode-choice-cost{font-size:.68rem;color:var(--muted)}
 
 /* Voice-only mode: hide text, show audio */
 .voice-only .msg-bubble{display:none}
 .voice-only .card-narration{display:none}
 .voice-only .card-reading-container{display:flex}
-.toggle-btn:disabled{cursor:not-allowed}
 
 /* Disclaimer */
 .disclaimer{text-align:center;padding:.4rem;font-size:.65rem;color:var(--muted2);flex-shrink:0;background:rgba(245,240,235,.7)}

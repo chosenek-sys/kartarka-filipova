@@ -662,19 +662,11 @@ function updateCreditDisplay() {
 
 function updateFreeCreditsGate() {
   const isFreeOnly = sessionStats.totalEarned !== null && sessionStats.totalEarned <= 10;
-  const textBtn = document.getElementById('toggleText');
-  if (textBtn) {
-    if (isFreeOnly && responseMode !== 'text') {
-      textBtn.disabled = true;
-      textBtn.title = 'Pro textové zprávy si prosím zakupte kredity';
-    } else if (isFreeOnly && responseMode === 'text') {
-      setMode('audio');
-      textBtn.disabled = true;
-      textBtn.title = 'Pro textové zprávy si prosím zakupte kredity';
-    } else {
-      textBtn.disabled = false;
-      textBtn.title = '';
-    }
+  const textBtn = document.querySelector('#modeModal .mode-choice-btn');
+  if (textBtn && isFreeOnly) {
+    textBtn.disabled = true;
+    textBtn.title = 'Pro textové zprávy si prosím zakupte kredity';
+    textBtn.classList.add('mode-choice-disabled');
   }
 }
 
@@ -1209,21 +1201,26 @@ async function openBillingPortal() {
 function setMode(mode) {
   if (modeLockedForConversation) return;
   responseMode = mode;
-  document.getElementById('toggleText').classList.toggle('active', mode === 'text');
-  document.getElementById('toggleAudio').classList.toggle('active', mode === 'audio');
 }
 
 function lockMode() {
   modeLockedForConversation = true;
-  const toggle = document.querySelector('.response-toggle');
-  if (toggle) toggle.style.display = 'none';
 }
 
 function unlockMode() {
   modeLockedForConversation = false;
-  const toggle = document.querySelector('.response-toggle');
-  if (toggle) toggle.style.display = '';
-  updateFreeCreditsGate();
+}
+
+function confirmMode(mode) {
+  document.getElementById('modeModal').classList.add('hidden');
+  responseMode = mode;
+  lockMode();
+  if (pendingFirstMessage) {
+    const msg = pendingFirstMessage;
+    pendingFirstMessage = null;
+    document.getElementById('chatInput').value = msg;
+    sendMessage();
+  }
 }
 
 // ============ CHAT ============
@@ -1441,14 +1438,21 @@ function hideTyping() {
   if (typing) typing.remove();
 }
 
+let pendingFirstMessage = null;
+
 async function sendMessage() {
   const input = document.getElementById('chatInput');
   const userText = input.value.trim();
   if (!userText || isGenerating) return;
 
+  if (!modeLockedForConversation) {
+    pendingFirstMessage = userText;
+    document.getElementById('modeModal').classList.remove('hidden');
+    return;
+  }
+
   isGenerating = true;
   document.getElementById('sendBtn').disabled = true;
-  if (!modeLockedForConversation) lockMode();
 
   // Ensure we have a conversation ID
   if (!currentConversationId) {
@@ -1930,6 +1934,7 @@ window.sendSuggestion = sendSuggestion;
 window.handleKeyDown = handleKeyDown;
 window.sendMessage = sendMessage;
 window.setMode = setMode;
+window.confirmMode = confirmMode;
 window.handleLogin = handleLogin;
 window.handleRegister = handleRegister;
 window.handleLogout = handleLogout;

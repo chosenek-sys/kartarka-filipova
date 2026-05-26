@@ -99,15 +99,30 @@
     </div>
 
     <div class="chat-input-area">
-      <div class="response-toggle" id="responseToggle">
-        <span class="toggle-prompt">Zvolte typ odpovědi:</span>
-        <button class="toggle-btn active" id="toggleText" onclick="setMode('text')">✉️ Pouze text</button>
-        <button class="toggle-btn" id="toggleAudio" onclick="setMode('audio')">🔊 Pouze hlas</button>
-      </div>
       <div class="input-row">
         <textarea class="chat-input" id="chatInput" placeholder="Napište svou otázku..." rows="1" onkeydown="handleKeyDown(event)"></textarea>
         <button class="send-btn" id="sendBtn" onclick="sendMessage()" title="Odeslat">➤</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Mode Choice Modal -->
+<div class="modal-overlay hidden" id="modeModal">
+  <div class="modal-card mode-modal">
+    <h3>Jak chcete přijímat odpovědi?</h3>
+    <p class="mode-modal-note">Volbu nelze v průběhu konverzace změnit.</p>
+    <div class="mode-modal-buttons">
+      <button class="mode-choice-btn" onclick="confirmMode('text')">
+        <span class="mode-choice-icon">✉️</span>
+        <span class="mode-choice-label">Text</span>
+        <span class="mode-choice-cost">1 kredit / zpráva</span>
+      </button>
+      <button class="mode-choice-btn" onclick="confirmMode('audio')">
+        <span class="mode-choice-icon">🔊</span>
+        <span class="mode-choice-label">Hlas</span>
+        <span class="mode-choice-cost">6 kreditů / zpráva</span>
+      </button>
     </div>
   </div>
 </div>
