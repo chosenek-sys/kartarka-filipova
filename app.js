@@ -510,7 +510,6 @@ async function loadConversation(conversationId) {
             loadStoredAudio(audioContainer, msg.audio_path);
             msgDiv.classList.add('voice-only');
           }
-          addReplayButton(msgDiv, msg.content);
         }
       }
     } else {
@@ -1428,7 +1427,11 @@ function showTyping() {
   const typingDiv = document.createElement('div');
   typingDiv.className = 'message assistant';
   typingDiv.id = 'typingIndicator';
-  typingDiv.innerHTML = '<div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
+  if (responseMode === 'audio') {
+    typingDiv.innerHTML = '<div class="audio-loading"><div class="spinner"></div> AI Zdenka odpovídá...</div>';
+  } else {
+    typingDiv.innerHTML = '<div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
+  }
   container.appendChild(typingDiv);
   container.scrollTop = container.scrollHeight;
 }
