@@ -1406,18 +1406,6 @@ function renderHealthCard(cardId, cardName, positionIndex, preFlipped, deckType 
   fallback.appendChild(fallbackName);
   front.appendChild(fallback);
 
-  // Label overlay
-  const label = document.createElement('div');
-  label.className = 'card-label';
-  const labelText = document.createElement('div');
-  labelText.className = 'card-label-text';
-  labelText.textContent = cardName;
-  label.appendChild(labelText);
-  const tagline = document.createElement('div');
-  tagline.className = 'card-tagline';
-  tagline.textContent = 'Změň svůj život';
-  label.appendChild(tagline);
-  front.appendChild(label);
 
   // Shimmer effect on reveal
   if (preFlipped) {
