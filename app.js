@@ -1559,63 +1559,64 @@ async function sendMessage() {
     let cardRevealCount = 0;
     let streamingDeckType = null;
     let contextFilterBuffer = '';
-    let insideCardDraw = false;
+    let insideFilterTag = null;
 
-    // Filter out <card_draw>...</card_draw> and standalone --- from streaming text
+    const FILTER_TAGS = [
+      { open: '<card_draw>', close: '</card_draw>' },
+      { open: '<deck_choice>', close: '</deck_choice>' },
+    ];
+
     function filterInternalContext(text) {
       contextFilterBuffer += text;
       let output = '';
 
       while (contextFilterBuffer.length > 0) {
-        if (insideCardDraw) {
-          // Look for closing tag
-          const closeIdx = contextFilterBuffer.indexOf('</card_draw>');
+        if (insideFilterTag) {
+          const closeIdx = contextFilterBuffer.indexOf(insideFilterTag.close);
           if (closeIdx !== -1) {
-            // Skip everything up to and including </card_draw>
-            contextFilterBuffer = contextFilterBuffer.slice(closeIdx + '</card_draw>'.length);
-            insideCardDraw = false;
+            contextFilterBuffer = contextFilterBuffer.slice(closeIdx + insideFilterTag.close.length);
+            insideFilterTag = null;
           } else if (contextFilterBuffer.length > 200) {
-            // Safety: if buffer gets too large without closing tag, flush it
             contextFilterBuffer = '';
-            insideCardDraw = false;
+            insideFilterTag = null;
           } else {
-            // Wait for more data
             break;
           }
         } else {
-          // Look for opening tag
-          const openIdx = contextFilterBuffer.indexOf('<card_draw>');
-          const partialIdx = contextFilterBuffer.indexOf('<');
-
-          if (openIdx !== -1) {
-            // Output text before the tag, skip the tag content
-            output += contextFilterBuffer.slice(0, openIdx);
-            contextFilterBuffer = contextFilterBuffer.slice(openIdx + '<card_draw>'.length);
-            insideCardDraw = true;
-          } else if (partialIdx !== -1) {
-            // Possible partial tag at end — check if it's a prefix of '<card_draw>'
-            const tail = contextFilterBuffer.slice(partialIdx);
-            if ('<card_draw>'.startsWith(tail)) {
-              output += contextFilterBuffer.slice(0, partialIdx);
-              contextFilterBuffer = contextFilterBuffer.slice(partialIdx);
-              break;
+          let earliestTag = null;
+          let earliestIdx = -1;
+          for (const tag of FILTER_TAGS) {
+            const idx = contextFilterBuffer.indexOf(tag.open);
+            if (idx !== -1 && (earliestIdx === -1 || idx < earliestIdx)) {
+              earliestIdx = idx;
+              earliestTag = tag;
             }
-            // Not a prefix of card_draw — safe to flush
-            output += contextFilterBuffer;
-            contextFilterBuffer = '';
+          }
+
+          if (earliestTag) {
+            output += contextFilterBuffer.slice(0, earliestIdx);
+            contextFilterBuffer = contextFilterBuffer.slice(earliestIdx + earliestTag.open.length);
+            insideFilterTag = earliestTag;
           } else {
-            // No tag found — all text is safe
-            output += contextFilterBuffer;
-            contextFilterBuffer = '';
+            const partialIdx = contextFilterBuffer.indexOf('<');
+            if (partialIdx !== -1) {
+              const tail = contextFilterBuffer.slice(partialIdx);
+              if (FILTER_TAGS.some(tag => tag.open.startsWith(tail))) {
+                output += contextFilterBuffer.slice(0, partialIdx);
+                contextFilterBuffer = contextFilterBuffer.slice(partialIdx);
+                break;
+              }
+              output += contextFilterBuffer;
+              contextFilterBuffer = '';
+            } else {
+              output += contextFilterBuffer;
+              contextFilterBuffer = '';
+            }
           }
         }
       }
 
-      // Strip standalone --- lines from the output
       output = output.replace(/^---\s*$/gm, '');
-      // Strip <deck_choice>...</deck_choice> markers
-      output = output.replace(/<deck_choice>(?:health|magic)<\/deck_choice>/g, '');
-      // Collapse 3+ newlines to 2
       output = output.replace(/\n{3,}/g, '\n\n');
       return output;
     }
