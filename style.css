@@ -154,6 +154,12 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
 .toggle-btn.active{background:rgba(107,58,42,.1);border-color:var(--brown);color:var(--brown)}
 .toggle-btn:hover:not(.active){border-color:rgba(107,58,42,.25);color:var(--text)}
 
+/* Voice-only mode: hide text, show audio */
+.voice-only .msg-bubble{display:none}
+.voice-only .card-narration{display:none}
+.voice-only .card-reading-container{display:flex}
+.toggle-btn:disabled{cursor:not-allowed}
+
 /* Disclaimer */
 .disclaimer{text-align:center;padding:.4rem;font-size:.65rem;color:var(--muted2);flex-shrink:0;background:rgba(245,240,235,.7)}
 

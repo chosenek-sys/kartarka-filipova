@@ -8,6 +8,7 @@ const SUPABASE_ANON_KEY = 'sb_publishable_eOjnyehEY92gd_u6XhQZqA_7qJLWtT-';
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let responseMode = 'text';
+let modeLockedForConversation = false;
 let conversationHistory = [];
 let isGenerating = false;
 let currentConversationId = null;
@@ -543,6 +544,8 @@ function startNewConversation() {
   closeSidebarIfMobile();
   currentConversationId = generateUUID();
   conversationHistory = [];
+  unlockMode();
+  setMode('text');
   const container = document.getElementById('chatMessages');
   container.innerHTML = '';
   showWelcome();
@@ -1190,9 +1193,27 @@ async function openBillingPortal() {
 
 // ============ RESPONSE MODE ============
 function setMode(mode) {
+  if (modeLockedForConversation) return;
   responseMode = mode;
   document.getElementById('toggleText').classList.toggle('active', mode === 'text');
   document.getElementById('toggleAudio').classList.toggle('active', mode === 'audio');
+}
+
+function lockMode() {
+  modeLockedForConversation = true;
+  const textBtn = document.getElementById('toggleText');
+  const audioBtn = document.getElementById('toggleAudio');
+  if (textBtn) { textBtn.disabled = true; textBtn.style.opacity = '0.5'; }
+  if (audioBtn) { audioBtn.disabled = true; audioBtn.style.opacity = '0.5'; }
+}
+
+function unlockMode() {
+  modeLockedForConversation = false;
+  const textBtn = document.getElementById('toggleText');
+  const audioBtn = document.getElementById('toggleAudio');
+  if (textBtn) { textBtn.disabled = false; textBtn.style.opacity = ''; }
+  if (audioBtn) { audioBtn.disabled = false; audioBtn.style.opacity = ''; }
+  updateFreeCreditsGate();
 }
 
 // ============ CHAT ============
@@ -1429,6 +1450,7 @@ async function sendMessage() {
 
   isGenerating = true;
   document.getElementById('sendBtn').disabled = true;
+  if (!modeLockedForConversation) lockMode();
 
   // Ensure we have a conversation ID
   if (!currentConversationId) {
@@ -1747,13 +1769,14 @@ async function sendMessage() {
         requestAnimationFrame(() => costDiv.classList.add('visible'));
       }
 
-      // TTS
+      // TTS — voice-only mode hides text after audio is ready
       if (responseMode === 'audio' && messageDiv) {
         const audioContainer = messageDiv.querySelector('[id^="audioContainer"]');
         if (audioContainer) {
           const ttsText = stripCardMarkers(assistantText);
           await generateAudio(ttsText, audioContainer);
           sessionStats.totalTtsChars += ttsText.length;
+          messageDiv.classList.add('voice-only');
           const costDiv = messageDiv.querySelector('.msg-cost');
           if (costDiv) {
             const ttsSpan = document.createElement('span');
