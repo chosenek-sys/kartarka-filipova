@@ -17,8 +17,8 @@ let isAdmin = false;
 // ============ HEALTH CARD DATA ============
 const CARD_IMAGE_BASE = 'images/karty_zdravi/';
 const CARD_DATA = {
-  1: { name: 'Anorexie', image: null },
-  2: { name: 'Astma, dýchání', image: null },
+  1: { name: 'Anorexie', image: CARD_IMAGE_BASE + '0.webp' },
+  2: { name: 'Astma, dýchání', image: CARD_IMAGE_BASE + '1.webp' },
   3: { name: 'Bolesti', image: CARD_IMAGE_BASE + '2.webp' },
   4: { name: 'Děloha', image: CARD_IMAGE_BASE + '3.webp' },
   5: { name: 'Dětské nemoci', image: CARD_IMAGE_BASE + '4.webp' },
@@ -39,7 +39,7 @@ const CARD_DATA = {
   20: { name: 'Lokty', image: CARD_IMAGE_BASE + '19.webp' },
   21: { name: 'Mandle', image: CARD_IMAGE_BASE + '20.webp' },
   22: { name: 'Močové cesty', image: CARD_IMAGE_BASE + '21.webp' },
-  23: { name: 'Cukrovka', image: null },
+  23: { name: 'Cukrovka', image: CARD_IMAGE_BASE + '22.webp' },
   24: { name: 'Mozková mrtvice', image: CARD_IMAGE_BASE + '23.webp' },
   25: { name: 'Nadváha', image: CARD_IMAGE_BASE + '24.webp' },
   26: { name: 'Nehty', image: CARD_IMAGE_BASE + '25.webp' },
@@ -69,9 +69,9 @@ const CARD_DATA = {
   50: { name: 'Záda / Páteř', image: CARD_IMAGE_BASE + '49.webp' },
   51: { name: 'Závislost', image: CARD_IMAGE_BASE + '52.webp' },
   52: { name: 'Zuby', image: CARD_IMAGE_BASE + '53.webp' },
-  53: { name: 'Žaludek', image: null },
+  53: { name: 'Žaludek', image: CARD_IMAGE_BASE + '57.webp' },
   54: { name: 'Žíly a žilní systém', image: CARD_IMAGE_BASE + '55.webp' },
-  55: { name: 'Žlučník', image: null },
+  55: { name: 'Žlučník', image: CARD_IMAGE_BASE + '56.webp' },
   56: { name: 'Žlázy', image: null },
   57: { name: 'Žučník', image: null },
 };
