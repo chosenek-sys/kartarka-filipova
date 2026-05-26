@@ -149,7 +149,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
 .send-btn{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--brown),var(--brown-light));border:none;color:var(--white);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.1rem;transition:all .3s;flex-shrink:0}
 .send-btn:hover{transform:scale(1.08);box-shadow:0 4px 16px rgba(107,58,42,.25)}
 .send-btn:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none}
-.response-toggle{display:flex;gap:.4rem;margin-bottom:.5rem}
+.response-toggle{display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem}
+.toggle-prompt{font-size:.75rem;font-weight:600;color:var(--brown);white-space:nowrap}
 .toggle-btn{padding:.3rem .7rem;border-radius:50px;font-size:.75rem;font-weight:500;border:1px solid rgba(107,58,42,.15);background:transparent;color:var(--muted);cursor:pointer;transition:all .3s;font-family:'Inter',sans-serif}
 .toggle-btn.active{background:rgba(107,58,42,.1);border-color:var(--brown);color:var(--brown)}
 .toggle-btn:hover:not(.active){border-color:rgba(107,58,42,.25);color:var(--text)}
