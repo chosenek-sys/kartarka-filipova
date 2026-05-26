@@ -72,8 +72,8 @@ const CARD_DATA = {
   53: { name: 'Žaludek', image: CARD_IMAGE_BASE + '57.webp' },
   54: { name: 'Žíly a žilní systém', image: CARD_IMAGE_BASE + '55.webp' },
   55: { name: 'Žlučník', image: CARD_IMAGE_BASE + '56.webp' },
-  56: { name: 'Žlázy', image: null },
-  57: { name: 'Žučník', image: null },
+  56: { name: 'Žlázy', image: CARD_IMAGE_BASE + 'zlazy.webp' },
+  57: { name: 'Žlučník', image: CARD_IMAGE_BASE + 'zlucnik.webp' },
 };
 
 // ============ SIMPLE MARKDOWN RENDERER ============
