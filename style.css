@@ -292,8 +292,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
 .card-front .card-fallback .card-fallback-icon{font-size:2.5rem;opacity:.5}
 .card-front .card-fallback .card-fallback-name{font-family:'Cinzel',serif;font-size:.75rem;color:var(--brown);text-align:center;word-break:break-word}
 .card-back{background:linear-gradient(135deg,var(--brown),var(--brown-dark));display:flex;align-items:center;justify-content:center;border:2px solid var(--brown-light)}
-.card-back::before{content:'✦';font-size:2rem;color:rgba(255,255,255,.2);animation:card-pulse 2s ease-in-out infinite}
-.card-back::after{content:'';position:absolute;inset:8px;border:1px solid rgba(255,255,255,.1);border-radius:8px}
+.card-back::before{content:'✦';font-size:2rem;color:rgba(255,255,255,.2);animation:card-pulse 2s ease-in-out infinite;backface-visibility:hidden}
+.card-back::after{content:'';position:absolute;inset:8px;border:1px solid rgba(255,255,255,.1);border-radius:8px;backface-visibility:hidden}
 @keyframes card-pulse{0%,100%{opacity:.2;transform:scale(1)}50%{opacity:.4;transform:scale(1.05)}}
 .card-label{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(74,37,24,.85));padding:.6rem .5rem .4rem;text-align:center}
 .card-label-text{color:var(--white);font-family:'Cinzel',serif;font-size:.75rem;font-weight:600;letter-spacing:.5px;text-shadow:0 1px 3px rgba(0,0,0,.3)}
@@ -499,8 +499,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
 
 /* Magic Map Card Styling */
 .magic-card .card-back.magic-back{background:linear-gradient(135deg,#2a4858,#1a3040);border-color:#4a8ca8}
-.magic-card .card-back.magic-back::before{content:'🗺️';font-size:1.8rem;animation:card-pulse 2s ease-in-out infinite}
-.magic-card .card-back.magic-back::after{border-color:rgba(74,140,168,.2)}
+.magic-card .card-back.magic-back::before{content:'🗺️';font-size:1.8rem;animation:card-pulse 2s ease-in-out infinite;backface-visibility:hidden}
+.magic-card .card-back.magic-back::after{border-color:rgba(74,140,168,.2);backface-visibility:hidden}
 
 /* Auth DOB/GDPR Fields */
 .auth-dob-row{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
