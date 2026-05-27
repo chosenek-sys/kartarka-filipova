@@ -216,7 +216,7 @@ async function handleRegister() {
   const passwordConfirm = document.getElementById('authPasswordConfirm').value;
   const firstName = document.getElementById('authFirstName').value.trim();
   const lastName = document.getElementById('authLastName')?.value.trim() || '';
-  const dob = document.getElementById('authDob')?.value || '';
+  const dobRaw = document.getElementById('authDob')?.value.trim() || '';
   const gdprConsent = document.getElementById('authGdpr')?.checked || false;
   const errorEl = document.getElementById('authError');
   errorEl.textContent = '';
@@ -237,6 +237,15 @@ async function handleRegister() {
   if (password !== passwordConfirm) {
     errorEl.textContent = 'Hesla se neshodují.';
     return;
+  }
+  let dob = '';
+  if (dobRaw) {
+    const m = dobRaw.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    if (!m) {
+      errorEl.textContent = 'Datum narození musí být ve formátu dd/mm/yyyy.';
+      return;
+    }
+    dob = `${m[3]}-${m[2]}-${m[1]}`;
   }
   if (dob && !gdprConsent) {
     errorEl.textContent = 'Pro zpracování data narození je nutný souhlas s GDPR.';
@@ -1956,3 +1965,11 @@ window.subscribeTier = subscribeTier;
 window.openBillingPortal = openBillingPortal;
 
 initAuth();
+
+document.getElementById('authDob')?.addEventListener('input', function(e) {
+  let v = this.value.replace(/\D/g, '');
+  if (v.length > 8) v = v.slice(0, 8);
+  if (v.length >= 5) v = v.slice(0, 2) + '/' + v.slice(2, 4) + '/' + v.slice(4);
+  else if (v.length >= 3) v = v.slice(0, 2) + '/' + v.slice(2);
+  this.value = v;
+});
