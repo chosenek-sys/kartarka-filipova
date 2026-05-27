@@ -249,6 +249,7 @@ async function handleRegister() {
     email,
     password,
     options: {
+      emailRedirectTo: window.location.origin + window.location.pathname,
       data: {
         display_name: displayName,
         first_name: firstName,
@@ -303,7 +304,9 @@ async function handleForgotPassword() {
     errorEl.textContent = 'Zadejte email pro obnovení hesla.';
     return;
   }
-  const { error } = await supabaseClient.auth.resetPasswordForEmail(email);
+  const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin + window.location.pathname,
+  });
   if (!error) {
     errorEl.style.color = '#22c55e';
     errorEl.textContent = 'Odkaz pro obnovení hesla byl odeslán na váš email.';
