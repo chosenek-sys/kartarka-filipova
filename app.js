@@ -1895,6 +1895,15 @@ async function generateAudio(text, container) {
     const audio = new Audio(audioUrl);
     renderAudioPlayer(container, audio);
 
+    // Auto-play and reveal cards
+    const messageDiv = container.closest('.message');
+    try {
+      await audio.play();
+      const btn = container.querySelector('.audio-btn');
+      if (btn) { btn.textContent = '⏸'; btn.dataset.state = 'playing'; }
+    } catch (e) { /* autoplay blocked by browser */ }
+    if (messageDiv) messageDiv.classList.add('audio-ready');
+
     fetchCredits();
   } catch (error) {
     console.error('TTS error:', error);
@@ -1916,6 +1925,8 @@ async function loadStoredAudio(container, audioPath) {
     const { url } = await res.json();
     const audio = new Audio(url);
     renderAudioPlayer(container, audio);
+    const messageDiv = container.closest('.message');
+    if (messageDiv) messageDiv.classList.add('audio-ready');
   } catch (err) {
     console.error('Stored audio load error:', err);
     container.innerHTML = '<div class="audio-loading" style="color:#999">🔊 Chyba při načítání audia</div>';
