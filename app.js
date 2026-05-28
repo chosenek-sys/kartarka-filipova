@@ -520,7 +520,8 @@ async function loadConversation(conversationId) {
             const audioContainer = document.createElement('div');
             audioContainer.id = 'audioContainer-' + msg.id;
             const timeEl = msgDiv.querySelector('.msg-time');
-            msgDiv.insertBefore(audioContainer, timeEl);
+            const cardContainer = msgDiv.querySelector('.card-reading-container');
+            msgDiv.insertBefore(audioContainer, cardContainer || timeEl);
             loadStoredAudio(audioContainer, msg.audio_path);
             msgDiv.classList.add('voice-only');
           }
