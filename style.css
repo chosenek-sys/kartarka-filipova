@@ -21,7 +21,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
 /* Auth screen */
 .auth-screen{position:fixed;inset:0;z-index:200;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.2rem;text-align:center;padding:2rem}
 .auth-screen.hidden{display:none}
-.auth-screen .logo-icon{width:100px;height:100px;border-radius:50%;object-fit:cover;border:3px solid var(--gold);animation:float 3s ease-in-out infinite}
+.auth-screen .logo-icon{width:160px;height:160px;border-radius:50%;object-fit:cover;border:3px solid var(--gold);animation:float 3s ease-in-out infinite}
 @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
 .auth-screen h1{font-family:'Cinzel',serif;font-size:1.8rem;color:var(--brown);letter-spacing:2px}
 .auth-screen p{color:var(--muted);max-width:380px;font-size:.95rem}
