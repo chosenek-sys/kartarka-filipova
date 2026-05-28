@@ -1490,11 +1490,11 @@ async function sendMessage() {
   }
   // Client-side credit pre-check (server is the authority, this avoids wasted requests)
   if (sessionStats.creditBalance !== null) {
-    const requiredCredits = responseMode === 'audio' ? 6 : 1;
+    const requiredCredits = responseMode === 'audio' ? 5 : 1;
     if (sessionStats.creditBalance < requiredCredits) {
       hideTyping();
       if (responseMode === 'audio') {
-        addMessage('assistant', '💎 Nemáte dostatek kreditů pro hlasovou odpověď (vyžaduje 6 kreditů: 1 text + 5 hlas). Přepněte na textový režim nebo si doplňte kredity.');
+        addMessage('assistant', '💎 Nemáte dostatek kreditů pro hlasovou odpověď (vyžaduje 5 kreditů). Přepněte na textový režim nebo si doplňte kredity.');
       } else {
         addMessage('assistant', '💎 Nemáte dostatek kreditů. Kontaktujte nás pro doplnění.');
       }
