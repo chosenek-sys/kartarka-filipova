@@ -163,8 +163,10 @@ function generateUUID() {
 
 // ============ AUTH ============
 async function getAccessToken() {
-  const { data: { session } } = await supabaseClient.auth.getSession();
-  return session?.access_token || null;
+  let { data: { session } } = await supabaseClient.auth.getSession();
+  if (session?.access_token) return session.access_token;
+  const { data: refreshed } = await supabaseClient.auth.refreshSession();
+  return refreshed?.session?.access_token || null;
 }
 
 let chatInitialized = false;
@@ -1505,7 +1507,7 @@ async function sendMessage() {
   }
 
   try {
-    const response = await fetch(`${API_BASE}/api/chat`, {
+    let response = await fetch(`${API_BASE}/api/chat`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -1521,10 +1523,27 @@ async function sendMessage() {
     hideTyping();
 
     if (response.status === 401) {
-      addMessage('assistant', '❌ Přihlášení vypršelo. Obnovte stránku a přihlaste se znovu.');
-      isGenerating = false;
-      document.getElementById('sendBtn').disabled = false;
-      return;
+      const retryToken = await getAccessToken();
+      if (retryToken && retryToken !== token) {
+        const retryResponse = await fetch(`${API_BASE}/api/chat`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${retryToken}` },
+          body: JSON.stringify({ messages: conversationHistory, conversation_id: currentConversationId, responseMode }),
+        });
+        if (retryResponse.ok) {
+          response = retryResponse;
+        } else {
+          addMessage('assistant', '❌ Přihlášení vypršelo. Obnovte stránku a přihlaste se znovu.');
+          isGenerating = false;
+          document.getElementById('sendBtn').disabled = false;
+          return;
+        }
+      } else {
+        addMessage('assistant', '❌ Přihlášení vypršelo. Obnovte stránku a přihlaste se znovu.');
+        isGenerating = false;
+        document.getElementById('sendBtn').disabled = false;
+        return;
+      }
     }
 
     if (response.status === 429) {
