@@ -945,9 +945,9 @@ document.addEventListener('click', (event) => {
 let cachedSubscription = null;
 
 const TIER_LABELS = {
-  basic: '⭐ Základní',
-  guide: '⭐ Průvodce',
-  master: '👑 Mistr',
+  svetlo: '⭐ Světlo',
+  cesta: '⭐ Cesta',
+  zmena: '👑 Změna',
 };
 
 async function loadSubscription() {
@@ -1069,7 +1069,7 @@ function removeSubDetail() {
 }
 
 function capitalize(str) {
-  const map = { basic: 'Basic', guide: 'Guide', master: 'Master' };
+  const map = { svetlo: 'Svetlo', cesta: 'Cesta', zmena: 'Zmena' };
   return map[str] || str.charAt(0).toUpperCase() + str.slice(1);
 }
 
