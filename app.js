@@ -1852,7 +1852,7 @@ async function sendMessage() {
 }
 
 // ============ AUDIO ============
-async function generateAudio(text, container) {
+async function generateAudio(text, container, retryCount = 0) {
   container.innerHTML = '<div class="audio-loading"><div class="spinner"></div> AI Zdenka odpovídá...</div>';
   const token = await getAccessToken();
 
@@ -1880,6 +1880,10 @@ async function generateAudio(text, container) {
     }
 
     if (!response.ok) {
+      if (retryCount < 2) {
+        console.warn('TTS response not ok, retrying...', response.status);
+        return generateAudio(text, container, retryCount + 1);
+      }
       container.innerHTML = '<div class="audio-loading" style="color:#ef4444">❌ Hlasová odpověď není dostupná</div>';
       return;
     }
@@ -1907,6 +1911,10 @@ async function generateAudio(text, container) {
     fetchCredits();
   } catch (error) {
     console.error('TTS error:', error);
+    if (retryCount < 2) {
+      console.warn('TTS fetch failed, retrying...', retryCount + 1);
+      return generateAudio(text, container, retryCount + 1);
+    }
     container.innerHTML = '<div class="audio-loading" style="color:#ef4444">❌ Chyba při generování hlasu</div>';
   }
 }
