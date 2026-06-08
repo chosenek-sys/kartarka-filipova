@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zdenka Filipová – Výklady karet a konstelací Ostrava</title>
+<meta name="description" content="Nejsem jen kartářka, ale také Váš průvodce životem. Výklady karet, konstelace, terapie duše. Ostrava.">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0d0618;--bg2:#150d2a;--surface:rgba(45,27,105,.25);
+  --purple:#2d1b69;--purple-light:#7c5cbf;--purple-glow:rgba(124,92,191,.15);
+  --gold:#d4af37;--gold-light:#f0d060;--gold-dim:rgba(212,175,55,.15);
+  --cream:#faf0e6;--white:#fff;--muted:#b8a9d4;--muted2:#8a7aad;
+  --radius:20px;--radius-sm:12px;
+}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--cream);overflow-x:hidden;line-height:1.6}
+
+/* BG */
+.bg-glow{position:fixed;inset:0;pointer-events:none;z-index:0}
+.bg-glow::before,.bg-glow::after{content:'';position:absolute;border-radius:50%;filter:blur(120px);opacity:.3}
+.bg-glow::before{width:600px;height:600px;background:#7c5cbf;top:-15%;left:-10%;animation:drift 20s ease-in-out infinite}
+.bg-glow::after{width:500px;height:500px;background:#d4af37;bottom:-10%;right:-10%;animation:drift 20s ease-in-out infinite reverse}
+@keyframes drift{0%,100%{transform:translate(0,0)}50%{transform:translate(40px,-40px)}}
+.stars{position:fixed;inset:0;pointer-events:none;z-index:0}
+.star{position:absolute;width:2px;height:2px;background:#fff;border-radius:50%;animation:twinkle 4s infinite alternate}
+@keyframes twinkle{0%{opacity:.1;transform:scale(.8)}100%{opacity:.8;transform:scale(1.2)}}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:.7rem 0;transition:all .4s}
+nav.scrolled{background:rgba(13,6,24,.92);backdrop-filter:blur(25px);border-bottom:1px solid var(--gold-dim)}
+.nav-inner{max-width:1280px;margin:0 auto;padding:0 3rem;display:flex;justify-content:space-between;align-items:center}
+.logo{font-family:'Cinzel',serif;font-size:1.3rem;font-weight:700;color:var(--gold);text-decoration:none;letter-spacing:2px;display:flex;align-items:center;gap:.6rem;white-space:nowrap}
+.logo-icon{width:32px;height:32px;border:2px solid var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8rem;animation:spin-slow 20s linear infinite}
+@keyframes spin-slow{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+.nav-links{display:flex;gap:1.8rem;list-style:none;align-items:center}
+.nav-links a{color:var(--muted);text-decoration:none;font-weight:400;font-size:.85rem;letter-spacing:1px;text-transform:uppercase;transition:all .3s;position:relative}
+.nav-links a::after{content:'';position:absolute;bottom:-6px;left:50%;width:0;height:2px;background:var(--gold);transition:all .3s;transform:translateX(-50%)}
+.nav-links a:hover{color:var(--gold)}
+.nav-links a:hover::after{width:100%}
+.nav-cta{display:inline-flex;align-items:center;gap:.5rem;background:linear-gradient(135deg,var(--gold),var(--gold-light));color:var(--bg);padding:.5rem 1.4rem;border-radius:50px;text-decoration:none;font-weight:600;font-size:.82rem;letter-spacing:.5px;transition:all .3s;box-shadow:0 4px 20px rgba(212,175,55,.2)}
+.nav-cta:hover{transform:translateY(-2px) scale(1.03);box-shadow:0 8px 30px rgba(212,175,55,.35)}
+
+/* HERO */
+.hero{position:relative;z-index:1;min-height:100vh;display:flex;align-items:center;overflow:hidden}
+.hero-bg{position:absolute;inset:0;z-index:0}
+.hero-bg img{width:100%;height:100%;object-fit:cover;opacity:.3}
+.hero-bg::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(13,6,24,.88) 0%,rgba(21,13,42,.7) 40%,rgba(45,27,105,.5) 100%)}
+.hero-content{position:relative;z-index:1;max-width:1280px;margin:0 auto;padding:10rem 3rem 6rem;display:grid;grid-template-columns:1.2fr 1fr;gap:4rem;align-items:center}
+.hero-badge{display:inline-flex;align-items:center;gap:.6rem;background:var(--gold-dim);border:1px solid rgba(212,175,55,.25);border-radius:50px;padding:.4rem 1.2rem .4rem .6rem;font-size:.8rem;color:var(--gold);margin-bottom:2rem;backdrop-filter:blur(10px)}
+.hero-badge .pulse{width:8px;height:8px;background:var(--gold);border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(212,175,55,.5)}70%{box-shadow:0 0 0 8px rgba(212,175,55,0)}}
+.hero h1{font-family:'Cinzel',serif;font-size:3.5rem;font-weight:900;line-height:1.12;margin-bottom:1.5rem}
+.hero h1 .gold{background:linear-gradient(135deg,var(--gold),var(--gold-light),#fff,var(--gold));background-size:200%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:shimmer 4s ease infinite}
+@keyframes shimmer{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+.hero p{font-size:1.12rem;color:var(--muted);max-width:500px;margin-bottom:2.5rem;line-height:1.8}
+.hero-buttons{display:flex;gap:1rem;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:.5rem;padding:1rem 2.2rem;border-radius:50px;font-family:'Inter',sans-serif;font-weight:600;font-size:.92rem;text-decoration:none;transition:all .35s;cursor:pointer;border:none;letter-spacing:.5px}
+.btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold-light));color:var(--bg);box-shadow:0 6px 30px rgba(212,175,55,.25)}
+.btn-gold:hover{transform:translateY(-3px);box-shadow:0 15px 45px rgba(212,175,55,.4)}
+.btn-outline{background:transparent;color:var(--gold);border:2px solid rgba(212,175,55,.4)}
+.btn-outline:hover{background:var(--gold-dim);border-color:var(--gold);transform:translateY(-3px)}
+.hero-visual{display:flex;justify-content:center;align-items:center}
+.hero-img-frame{position:relative;width:360px;height:460px;border-radius:var(--radius);overflow:hidden;border:2px solid rgba(212,175,55,.2);box-shadow:0 30px 80px rgba(0,0,0,.5),0 0 60px var(--purple-glow)}
+.hero-img-frame img{width:100%;height:100%;object-fit:cover}
+.hero-img-frame::before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 60%,rgba(13,6,24,.6));z-index:1}
+.hero-img-frame::after{content:'';position:absolute;inset:-2px;border-radius:var(--radius);border:1px solid rgba(212,175,55,.15);z-index:2;animation:border-glow 3s ease-in-out infinite alternate}
+@keyframes border-glow{from{box-shadow:inset 0 0 30px rgba(212,175,55,.05)}to{box-shadow:inset 0 0 30px rgba(212,175,55,.15)}}
+
+/* SECTION */
+section{position:relative;z-index:1;padding:6rem 0}
+.container{max-width:1280px;margin:0 auto;padding:0 3rem}
+.section-tag{display:inline-block;font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:3px;color:var(--gold);background:var(--gold-dim);border:1px solid rgba(212,175,55,.15);padding:.3rem 1rem;border-radius:50px;margin-bottom:1.2rem}
+.section-title{font-family:'Cinzel',serif;font-size:2.5rem;font-weight:700;margin-bottom:.8rem}
+.section-title .gold{color:var(--gold)}
+.section-desc{color:var(--muted);font-size:1.02rem;max-width:550px;line-height:1.7}
+.section-header{text-align:center;margin-bottom:3.5rem}
+.section-header .section-desc{margin:0 auto}
+
+/* ABOUT */
+.about{background:linear-gradient(180deg,transparent,var(--bg2),transparent)}
+.about-grid{display:grid;grid-template-columns:1fr 1.2fr;gap:5rem;align-items:center}
+.about-image{position:relative;border-radius:var(--radius);overflow:hidden;aspect-ratio:4/5;box-shadow:0 30px 80px rgba(0,0,0,.4)}
+.about-image img{width:100%;height:100%;object-fit:cover}
+.about-image::after{content:'';position:absolute;inset:0;border:1px solid rgba(212,175,55,.15);border-radius:var(--radius)}
+.about-image .float-badge{position:absolute;bottom:1.5rem;left:1.5rem;right:1.5rem;padding:1.2rem;background:rgba(13,6,24,.85);backdrop-filter:blur(15px);border-radius:var(--radius-sm);border:1px solid rgba(212,175,55,.2);display:flex;gap:1.5rem;justify-content:space-around}
+.float-badge .fb-item{text-align:center}
+.float-badge .fb-val{font-family:'Cinzel',serif;font-size:1.3rem;font-weight:700;color:var(--gold)}
+.float-badge .fb-lbl{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.about-content h2{font-family:'Cinzel',serif;font-size:2rem;font-weight:700;margin-bottom:1.4rem;line-height:1.3}
+.about-content h2 .gold{color:var(--gold)}
+.about-content p{color:var(--muted);line-height:1.85;margin-bottom:1rem;font-size:1rem}
+.about-features{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-top:1.5rem}
+.about-feature{display:flex;align-items:center;gap:.7rem;padding:.7rem .9rem;background:var(--surface);border:1px solid rgba(212,175,55,.1);border-radius:var(--radius-sm);transition:all .3s}
+.about-feature:hover{border-color:rgba(212,175,55,.3);background:rgba(45,27,105,.35)}
+.about-feature-icon{width:38px;height:38px;border-radius:10px;background:var(--gold-dim);display:flex;align-items:center;justify-content:center;font-size:1.05rem;flex-shrink:0}
+.about-feature span{font-size:.88rem;font-weight:500}
+
+/* SERVICES */
+.services-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1.5rem}
+.service-card{background:var(--surface);border:1px solid rgba(212,175,55,.1);border-radius:var(--radius);padding:2rem;backdrop-filter:blur(10px);transition:all .35s;overflow:hidden;position:relative}
+.service-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--gold),var(--gold-light));opacity:0;transition:opacity .3s}
+.service-card:hover{transform:translateY(-6px);border-color:rgba(212,175,55,.3);box-shadow:0 25px 50px rgba(0,0,0,.3)}
+.service-card:hover::before{opacity:1}
+.service-card .s-icon{width:48px;height:48px;border-radius:14px;background:var(--gold-dim);display:flex;align-items:center;justify-content:center;font-size:1.4rem;margin-bottom:1rem}
+.service-card h3{font-family:'Cinzel',serif;font-size:1.15rem;margin-bottom:.5rem}
+.service-card .s-desc{color:var(--muted);font-size:.9rem;line-height:1.6;margin-bottom:1rem}
+.service-card .s-price{color:var(--gold);font-family:'Cinzel',serif;font-size:1.4rem;font-weight:700;margin-bottom:1rem}
+.service-card .s-price small{font-size:.85rem;color:var(--muted);font-family:'Inter',sans-serif;font-weight:400}
+.service-card .btn{width:100%;justify-content:center;padding:.7rem;font-size:.85rem}
+
+/* PRICING TABLE */
+.pricing-section{background:linear-gradient(180deg,transparent,var(--bg2),transparent)}
+.price-table-wrap{overflow-x:auto}
+.price-table{width:100%;border-collapse:collapse;min-width:700px}
+.price-table thead th{font-family:'Inter',sans-serif;font-weight:600;font-size:.78rem;text-transform:uppercase;letter-spacing:2px;color:var(--gold);padding:1rem 1.2rem;text-align:left;border-bottom:2px solid rgba(212,175,55,.25)}
+.price-table tbody td{padding:1rem 1.2rem;border-bottom:1px solid rgba(212,175,55,.07);color:var(--muted);font-size:.92rem;vertical-align:middle}
+.price-table tbody tr{transition:background .3s}
+.price-table tbody tr:hover{background:rgba(45,27,105,.15)}
+.price-table .t-service{color:var(--cream);font-weight:500}
+.price-table .t-price{color:var(--gold);font-family:'Cinzel',serif;font-weight:700;font-size:1.05rem}
+
+/* TESTIMONIALS */
+.testimonials-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem}
+.testimonial-card{background:var(--surface);border:1px solid rgba(212,175,55,.1);border-radius:var(--radius);padding:2rem;backdrop-filter:blur(10px);position:relative}
+.testimonial-card::before{content:'"';position:absolute;top:.5rem;left:1.2rem;font-family:'Cinzel',serif;font-size:4rem;color:rgba(212,175,55,.15);line-height:1}
+.testimonial-card p{color:var(--muted);font-size:.9rem;line-height:1.7;font-style:italic;margin-bottom:1rem;padding-top:1.5rem}
+.testimonial-card .t-author{color:var(--gold);font-weight:600;font-size:.85rem}
+
+/* NEWS */
+.news-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem}
+.news-card{background:var(--surface);border:1px solid rgba(212,175,55,.08);border-radius:var(--radius);overflow:hidden;backdrop-filter:blur(10px);transition:all .35s}
+.news-card:hover{transform:translateY(-6px);border-color:rgba(212,175,55,.25);box-shadow:0 20px 50px rgba(0,0,0,.3)}
+.news-thumb{height:180px;overflow:hidden;position:relative}
+.news-thumb img{width:100%;height:100%;object-fit:cover;transition:transform .5s}
+.news-card:hover .news-thumb img{transform:scale(1.08)}
+.news-thumb::after{content:'';position:absolute;bottom:0;left:0;right:0;height:60%;background:linear-gradient(transparent,rgba(13,6,24,.8))}
+.news-body{padding:1.5rem}
+.news-meta{display:flex;align-items:center;gap:.5rem;font-size:.78rem;color:var(--gold);font-weight:500;margin-bottom:.6rem}
+.news-card h3{font-family:'Cinzel',serif;font-size:1rem;margin-bottom:.5rem;line-height:1.4}
+.news-card p{color:var(--muted);font-size:.86rem;line-height:1.6}
+
+/* QUESTIONS */
+.questions-section{background:linear-gradient(180deg,transparent,var(--bg2),transparent)}
+.questions-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1.2rem;max-width:800px;margin:0 auto}
+.question-item{display:flex;align-items:center;gap:.8rem;padding:1rem 1.3rem;background:var(--surface);border:1px solid rgba(212,175,55,.1);border-radius:var(--radius-sm);transition:all .3s;color:var(--cream);font-size:.95rem}
+.question-item:hover{border-color:rgba(212,175,55,.3);transform:translateX(5px)}
+.question-item::before{content:'✦';color:var(--gold);font-size:.7rem;flex-shrink:0}
+
+/* CTA */
+.cta-box{position:relative;background:var(--surface);border:1px solid rgba(212,175,55,.15);border-radius:24px;padding:4rem 3rem;text-align:center;backdrop-filter:blur(10px);overflow:hidden}
+.cta-box::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:conic-gradient(from 0deg,transparent,rgba(212,175,55,.05),transparent,rgba(124,92,191,.05),transparent);animation:spin-slow 15s linear infinite}
+.cta-box h2{font-family:'Cinzel',serif;font-size:2.5rem;font-weight:700;margin-bottom:1rem;position:relative;z-index:1}
+.cta-box h2 .gold{color:var(--gold)}
+.cta-box p{color:var(--muted);font-size:1.05rem;margin-bottom:.5rem;position:relative;z-index:1}
+.cta-box .contact-row{display:flex;justify-content:center;gap:2rem;margin:1.5rem 0 2rem;flex-wrap:wrap;position:relative;z-index:1}
+.cta-box .contact-item{display:flex;align-items:center;gap:.5rem;color:var(--gold);font-size:1.1rem;font-weight:600;text-decoration:none}
+.cta-box .contact-item:hover{color:var(--gold-light)}
+.cta-box .btn{position:relative;z-index:1}
+.cta-box .work-hours{color:var(--muted2);font-size:.9rem;margin-top:1rem;position:relative;z-index:1}
+
+/* FOOTER */
+footer{position:relative;z-index:1;border-top:1px solid rgba(212,175,55,.1);padding:2.5rem 0}
+.footer-inner{max-width:1280px;margin:0 auto;padding:0 3rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem}
+.footer-logo{font-family:'Cinzel',serif;font-size:1rem;color:var(--gold);letter-spacing:2px}
+.footer-info{color:var(--muted2);font-size:.82rem}
+.footer-info a{color:var(--gold);text-decoration:none}
+.footer-links{display:flex;gap:1.5rem;flex-wrap:wrap}
+.footer-links a{color:var(--muted2);text-decoration:none;font-size:.82rem;transition:color .3s}
+.footer-links a:hover{color:var(--gold)}
+
+/* ANIMATIONS */
+.fade-up{opacity:0;transform:translateY(40px);transition:all .8s cubic-bezier(.16,1,.3,1)}
+.fade-up.visible{opacity:1;transform:translateY(0)}
+
+/* RESPONSIVE */
+@media(max-width:1024px){
+  .hero-content{grid-template-columns:1fr;text-align:center;padding-top:8rem}
+  .hero p{margin:0 auto 2.5rem}
+  .hero-buttons{justify-content:center}
+  .hero-visual{display:none}
+  .about-grid{grid-template-columns:1fr}
+  .about-image{max-width:450px;margin:0 auto}
+  .services-grid{grid-template-columns:1fr 1fr}
+  .testimonials-grid{grid-template-columns:1fr}
+  .news-grid{grid-template-columns:1fr 1fr}
+  .questions-grid{grid-template-columns:1fr}
+}
+@media(max-width:640px){
+  .hero h1{font-size:2.2rem}
+  .nav-links{display:none}
+  .nav-inner{padding:0 1.5rem}
+  .container{padding:0 1.5rem}
+  section{padding:4rem 0}
+  .services-grid,.news-grid{grid-template-columns:1fr}
+  .about-features{grid-template-columns:1fr}
+  .footer-inner{flex-direction:column;text-align:center}
+  .cta-box{padding:3rem 1.5rem}
+}
+</style>
+</head>
+<body>
+
+<div class="bg-glow"></div>
+<div class="stars" id="stars"></div>
+
+<!-- NAV -->
+<nav id="navbar">
+  <div class="nav-inner">
+    <a href="#" class="logo">
+      <span class="logo-icon">✦</span>
+      ZDENKA FILIPOVÁ
+    </a>
+    <ul class="nav-links">
+      <li><a href="#services">Služby</a></li>
+      <li><a href="#about">Můj příběh</a></li>
+      <li><a href="#pricing">Ceník</a></li>
+      <li><a href="#testimonials">Reference</a></li>
+      <li><a href="#news">Novinky</a></li>
+      <li><a href="#contact">Kontakt</a></li>
+      <li><a href="#" class="nav-cta">Přihlásit se</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg">
+    <img src="images/hero-bg.png" alt="Mystické pozadí">
+  </div>
+  <div class="hero-content">
+    <div>
+      <div class="hero-badge"><span class="pulse"></span> Po–Pá 9:00 – 18:00</div>
+      <h1>Nejsem jen kartářka,<br><span class="gold">ale také Váš průvodce životem</span></h1>
+      <p>Karty vykládám již deset let a mám pocit, že je to silnější a silnější. Jsem nadšená z mé práce, protože si myslím, že každý z nás by měl dělat to, co ho baví a naplňuje.</p>
+      <div class="hero-buttons">
+        <a href="#services" class="btn btn-gold">✦ S čím vám pomůžu?</a>
+        <a href="#pricing" class="btn btn-outline">Zobrazit ceník →</a>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="hero-img-frame">
+        <img src="images/zdenka-portrait.jpg" alt="Zdenka Filipová – kartářka">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SERVICES -->
+<section id="services">
+  <div class="container">
+    <div class="section-header fade-up">
+      <span class="section-tag">Moje služby</span>
+      <h2 class="section-title">S čím vám <span class="gold">mohu pomoci</span></h2>
+      <p class="section-desc">Vyberte si službu, která vám nejlépe vyhovuje. Osobně v Ostravě i na dálku.</p>
+    </div>
+    <div class="services-grid">
+      <div class="service-card fade-up">
+        <div class="s-icon">📞</div>
+        <h3>Výklad karet po telefonu</h3>
+        <p class="s-desc">Vy se ptáte jednoduchými otázkami, já vykládám karty na dané téma a říkám, co vidím. Mohu vám také pomoci formulovat otázky.</p>
+        <div class="s-price">od 350 <small>Kč / 15 min</small></div>
+        <a href="#pricing" class="btn btn-outline">Chci výklad karet</a>
+      </div>
+      <div class="service-card fade-up">
+        <div class="s-icon">🔮</div>
+        <h3>Výklad karet s konstelací</h3>
+        <p class="s-desc">Hloubkový výklad kombinovaný s konstelační prací pro komplexní rozbor vaší situace. Po telefonu nebo přes videohovor.</p>
+        <div class="s-price">od 600 <small>Kč / 15 min</small></div>
+        <a href="#pricing" class="btn btn-outline">Chci konstelaci</a>
+      </div>
+      <div class="service-card fade-up">
+        <div class="s-icon">💻</div>
+        <h3>Výklad karet – videohovor</h3>
+        <p class="s-desc">Vy se ptáte jednoduchými otázkami, já vykládám karty na dané téma a říkám, co vidím. Jsme připojeni přes Google Meet.</p>
+        <div class="s-price">od 350 <small>Kč / 15 min</small></div>
+        <a href="#pricing" class="btn btn-outline">Chci videohovor</a>
+      </div>
+      <div class="service-card fade-up">
+        <div class="s-icon">✉️</div>
+        <h3>Výklad karet písemně</h3>
+        <p class="s-desc">Písemný výklad zaslaný do 72 hodin od obdržení platby. Přes email, SMS, WhatsApp nebo Messenger.</p>
+        <div class="s-price">250 <small>Kč / otázka</small></div>
+        <a href="#pricing" class="btn btn-outline">Chci výklad písemně</a>
+      </div>
+      <div class="service-card fade-up">
+        <div class="s-icon">👶</div>
+        <h3>Uzdravení vnitřního dítěte</h3>
+        <p class="s-desc">Objevte cestu k uzdravení svého vnitřního dítěte a vytvořte harmonii ve svém životě. Léčte vztahy formované od dětství, zlepšete sebevědomí.</p>
+        <div class="s-price">1 000 <small>Kč / 45 min</small></div>
+        <a href="#contact" class="btn btn-outline">Chci uzdravení</a>
+      </div>
+      <div class="service-card fade-up">
+        <div class="s-icon">💫</div>
+        <h3>Terapie duše</h3>
+        <p class="s-desc">Klíč k řešení vaší aktuální situace. Pomáhá vyrovnat se s minulostí a otevřít dveře k podvědomí. Různé techniky identifikují kořeny problémů.</p>
+        <div class="s-price">2 900 <small>Kč / 60–120 min</small></div>
+        <a href="#contact" class="btn btn-outline">Chci terapii duše</a>
+      </div>
+      <div class="service-card fade-up">
+        <div class="s-icon">📍</div>
+        <h3>Výklad karet osobně v Ostravě</h3>
+        <p class="s-desc">Osobní setkání v Ostravě-Hrabové. Přijďte ke mně a nechte karty promluvit tváří v tvář.</p>
+        <div class="s-price">1 600 <small>Kč / 60 min</small></div>
+        <a href="#contact" class="btn btn-outline">Chci výklad osobně</a>
+      </div>
+      <div class="service-card fade-up">
+        <div class="s-icon">🎁</div>
+        <h3>Dárkové poukazy</h3>
+        <p class="s-desc">Darujte poukaz na výklad karet. K dispozici v hodnotách 600, 1200 a 1800 Kč. Po zaplacení obdržíte ihned PDF poukázky k tisku.</p>
+        <div class="s-price">od 600 <small>Kč</small></div>
+        <a href="#contact" class="btn btn-outline">Koupit poukaz</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section class="about" id="about">
+  <div class="container">
+    <div class="about-grid">
+      <div class="about-image fade-up">
+        <img src="images/zdenka-2.jpeg" alt="Zdenka Filipová">
+        <div class="float-badge">
+          <div class="fb-item"><div class="fb-val">10+</div><div class="fb-lbl">Let praxe</div></div>
+          <div class="fb-item"><div class="fb-val">Ostrava</div><div class="fb-lbl">Osobně</div></div>
+          <div class="fb-item"><div class="fb-val">Online</div><div class="fb-lbl">Po celé ČR</div></div>
+        </div>
+      </div>
+      <div class="about-content fade-up">
+        <span class="section-tag">Můj příběh</span>
+        <h2>Jak jsem se dostala <span class="gold">k výkladu karet</span></h2>
+        <p>Karty vykládám již deset let a mám pocit, že je to silnější a silnější. Mám větší a větší napojení. Vše se také odvíjí od toho, jak jsme naladění… Zda pozitivně či negativně, vše jde změnit, protože všechno je to o nastavení mysli.</p>
+        <p>Jsem nadšená z mé práce, protože si myslím, že každý z nás by měl dělat to, co ho baví a naplňuje. Já v mé práci vidím takové malé poslání. Vím, že Vám pomohu žít lepší život.</p>
+        <p>Pokud samozřejmě Vy sami budete chtít, neboť já Vám můžu ukázat cestu, ale vy po ní musíte jít sami.</p>
+        <div class="about-features">
+          <div class="about-feature"><div class="about-feature-icon">🔮</div><span>Výklady karet</span></div>
+          <div class="about-feature"><div class="about-feature-icon">🌙</div><span>Konstelace</span></div>
+          <div class="about-feature"><div class="about-feature-icon">💎</div><span>Terapie duše</span></div>
+          <div class="about-feature"><div class="about-feature-icon">👶</div><span>Vnitřní dítě</span></div>
+          <div class="about-feature"><div class="about-feature-icon">🧘</div><span>Meditace</span></div>
+          <div class="about-feature"><div class="about-feature-icon">💫</div><span>Online i osobně</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING TABLE -->
+<section class="pricing-section" id="pricing">
+  <div class="container">
+    <div class="section-header fade-up">
+      <span class="section-tag">Ceník</span>
+      <h2 class="section-title">Kompletní <span class="gold">ceník služeb</span></h2>
+      <p class="section-desc">Transparentní ceny, žádné skryté poplatky</p>
+    </div>
+    <div class="price-table-wrap fade-up">
+      <table class="price-table">
+        <thead>
+          <tr><th>Služba</th><th>15 min</th><th>30 min</th><th>45 min</th><th>60 min</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="t-service">📞 Výklad karet po telefonu</td>
+            <td class="t-price">350 Kč</td><td class="t-price">700 Kč</td><td class="t-price">1 050 Kč</td><td class="t-price">1 400 Kč</td>
+          </tr>
+          <tr>
+            <td class="t-service">🔮 Výklad karet s konstelací (telefon)</td>
+            <td class="t-price">600 Kč</td><td class="t-price">1 200 Kč</td><td class="t-price">1 800 Kč</td><td class="t-price">2 400 Kč</td>
+          </tr>
+          <tr>
+            <td class="t-service">💻 Výklad karet videohovor</td>
+            <td class="t-price">350 Kč</td><td class="t-price">700 Kč</td><td class="t-price">1 050 Kč</td><td class="t-price">1 400 Kč</td>
+          </tr>
+          <tr>
+            <td class="t-service">🔮 Konstelace videohovor</td>
+            <td class="t-price">600 Kč</td><td class="t-price">1 200 Kč</td><td class="t-price">1 800 Kč</td><td class="t-price">2 400 Kč</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="services-grid" style="margin-top:2rem;grid-template-columns:repeat(3,1fr)">
+      <div class="service-card fade-up" style="text-align:center">
+        <div class="s-icon" style="margin:0 auto 1rem">✉️</div>
+        <h3>Výklad písemně</h3>
+        <p class="s-desc">do 72h, email/SMS/WhatsApp</p>
+        <div class="s-price">250 <small>Kč / otázka</small></div>
+      </div>
+      <div class="service-card fade-up" style="text-align:center">
+        <div class="s-icon" style="margin:0 auto 1rem">✉️🔮</div>
+        <h3>Konstelace písemně</h3>
+        <p class="s-desc">do 72h, email/SMS/WhatsApp</p>
+        <div class="s-price">350 <small>Kč / otázka</small></div>
+      </div>
+      <div class="service-card fade-up" style="text-align:center">
+        <div class="s-icon" style="margin:0 auto 1rem">📍</div>
+        <h3>Osobně v Ostravě</h3>
+        <p class="s-desc">Ostrava-Hrabová, 60 min</p>
+        <div class="s-price">1 600 <small>Kč</small></div>
+      </div>
+    </div>
+    <div class="services-grid" style="margin-top:1.5rem;grid-template-columns:repeat(3,1fr)">
+      <div class="service-card fade-up" style="text-align:center">
+        <div class="s-icon" style="margin:0 auto 1rem">👶</div>
+        <h3>Uzdravení vnitřního dítěte</h3>
+        <p class="s-desc">45 minut</p>
+        <div class="s-price">1 000 <small>Kč</small></div>
+      </div>
+      <div class="service-card fade-up" style="text-align:center">
+        <div class="s-icon" style="margin:0 auto 1rem">💫</div>
+        <h3>Terapie duše</h3>
+        <p class="s-desc">60–120 minut</p>
+        <div class="s-price">2 900 <small>Kč</small></div>
+      </div>
+      <div class="service-card fade-up" style="text-align:center">
+        <div class="s-icon" style="margin:0 auto 1rem">🎁</div>
+        <h3>Dárkové poukazy</h3>
+        <p class="s-desc">600 / 1200 / 1800 Kč</p>
+        <div class="s-price">od 600 <small>Kč</small></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- QUESTIONS -->
+<section id="questions">
+  <div class="container">
+    <div class="section-header fade-up">
+      <span class="section-tag">Otázky</span>
+      <h2 class="section-title">Karty vám <span class="gold">odpoví na vaše otázky</span></h2>
+    </div>
+    <div class="questions-grid fade-up">
+      <div class="question-item">Jak dopadne můj partnerský vztah?</div>
+      <div class="question-item">Zvládnu nynější situaci?</div>
+      <div class="question-item">Co mi karty radí?</div>
+      <div class="question-item">Jak můžu změnit svůj život?</div>
+      <div class="question-item">Můžu očekávat zlepšení zdravotního stavu?</div>
+      <div class="question-item">Jak dopadne pracovní pohovor?</div>
+      <div class="question-item">Co mi chce současná situace říci?</div>
+      <div class="question-item">Co mohu udělat proto, aby se mi dařilo lépe?</div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section id="testimonials">
+  <div class="container">
+    <div class="section-header fade-up">
+      <span class="section-tag">Reference</span>
+      <h2 class="section-title">Co o mně říkají <span class="gold">spokojení klienti</span></h2>
+    </div>
+    <div class="testimonials-grid">
+      <div class="testimonial-card fade-up">
+        <p>Zdeni, jste skvělá na výklad karet, téměř vše, jak v minulosti, tak i v budoucnosti, vychází. K nikomu v tomto směru nemám důvěru jako ve vás. Za to moc děkuji. 😘</p>
+        <div class="t-author">— Martina</div>
+      </div>
+      <div class="testimonial-card fade-up">
+        <p>Paní Zdenka na mě velice zapůsobila a její výklad byl nejlepší, který jsem v životě zatím podstoupila. Je velmi kamarádská, příjemná a vyrovnaná. Navíc jí všechno vycházelo podle skutečnosti.</p>
+        <div class="t-author">— Spokojená klientka</div>
+      </div>
+      <div class="testimonial-card fade-up">
+        <p>Chtěla bych poděkovat za výklad. Bylo moc zajímavé, že jste mi řekla, že čekám chlapečka. A za týden jsem se dozvěděla od lékaře, že se nám chlapeček narodí. Ukázala jste mi cestu vpřed.</p>
+        <div class="t-author">— Spokojená klientka</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- NEWS -->
+<section id="news">
+  <div class="container">
+    <div class="section-header fade-up">
+      <span class="section-tag">Novinky</span>
+      <h2 class="section-title">Aktuality a <span class="gold">inspirace</span></h2>
+      <p class="section-desc">Nejnovější příspěvky a zajímavosti</p>
+    </div>
+    <div class="news-grid">
+      <div class="news-card fade-up">
+        <div class="news-thumb"><img src="images/news-collage.png" alt="Meditace"></div>
+        <div class="news-body">
+          <div class="news-meta">📅 25. března 2026</div>
+          <h3>Nové online meditace s kartami</h3>
+          <p>Meditace na uzdravení vnitřního dítěte, zdraví, vztahy, hojnost a sebelásku – nyní dostupné online s fyzickými kartami.</p>
+        </div>
+      </div>
+      <div class="news-card fade-up">
+        <div class="news-thumb"><img src="images/services.png" alt="Karty zdraví"></div>
+        <div class="news-body">
+          <div class="news-meta">📅 18. března 2026</div>
+          <h3>Karty zdraví – nová služba</h3>
+          <p>Speciální výklady zaměřené na vaše zdraví a pohodu. Nový přístup ke kartám, který vám pomůže lépe porozumět svému tělu.</p>
+        </div>
+      </div>
+      <div class="news-card fade-up">
+        <div class="news-thumb"><img src="images/hero-bg.png" alt="Dárkové poukazy"></div>
+        <div class="news-body">
+          <div class="news-meta">📅 10. března 2026</div>
+          <h3>Dárkové poukazy – potěšte své blízké</h3>
+          <p>Darujte nevšední zážitek. Poukazy v hodnotách 600, 1200 a 1800 Kč – ihned v PDF k tisku po zaplacení.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT / CTA -->
+<section id="contact">
+  <div class="container">
+    <div class="cta-box fade-up">
+      <h2>Zjistěte odpovědi<br>na <span class="gold">své otázky</span></h2>
+      <p>Osobně v Ostravě-Hrabové nebo na dálku po celé ČR</p>
+      <div class="contact-row">
+        <a href="tel:+420773662885" class="contact-item">📞 773 662 885</a>
+        <a href="mailto:info@zdenkafilipova.cz" class="contact-item">✉️ info@zdenkafilipova.cz</a>
+      </div>
+      <a href="tel:+420773662885" class="btn btn-gold">✦ Zavolat nyní</a>
+      <div class="work-hours">Pracovní doba: Po–Pá 9:00 – 18:00</div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-logo">✦ Zdenka Filipová</div>
+    <div class="footer-info">
+      Klasná 959/19A, Ostrava-Hrabová |
+      IČ: 17307198 | Nejsem plátce DPH |
+      <a href="tel:+420773662885">773 662 885</a> |
+      <a href="mailto:info@zdenkafilipova.cz">info@zdenkafilipova.cz</a>
+    </div>
+    <div class="footer-links">
+      <a href="#">Obchodní podmínky</a>
+      <a href="#">Ochrana osobních údajů</a>
+      <a href="#">Blog</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+// Stars
+const s=document.getElementById('stars');
+for(let i=0;i<100;i++){const d=document.createElement('div');d.className='star';d.style.left=Math.random()*100+'%';d.style.top=Math.random()*100+'%';d.style.animationDelay=Math.random()*4+'s';d.style.width=d.style.height=(Math.random()*2+.5)+'px';s.appendChild(d)}
+// Nav scroll
+const nav=document.getElementById('navbar');
+window.addEventListener('scroll',()=>nav.classList.toggle('scrolled',window.scrollY>50));
+// Scroll animations
+const obs=new IntersectionObserver((e)=>e.forEach(i=>{if(i.isIntersecting){i.target.classList.add('visible');obs.unobserve(i.target)}}),{threshold:.1,rootMargin:'0px 0px -40px 0px'});
+document.querySelectorAll('.fade-up').forEach(el=>obs.observe(el));
+</script>
+</body>
+</html>
