@@ -1587,6 +1587,8 @@ async function sendMessage() {
     let streamingDeckType = null;
     let contextFilterBuffer = '';
     let insideFilterTag = null;
+    let audioChunks = [];
+    let ttsStreaming = false;
 
     const FILTER_TAGS = [
       { open: '<card_draw>', close: '</card_draw>' },
@@ -1669,6 +1671,55 @@ async function sendMessage() {
           if (parsed.type === 'message_delta' && parsed.usage) {
             msgOutputTokens = parsed.usage.output_tokens || 0;
           }
+          // TTS streaming events (audio piped through same SSE connection)
+          if (parsed.type === 'tts_start') {
+            ttsStreaming = true;
+            if (messageDiv) {
+              const ac = messageDiv.querySelector('[id^="audioContainer"]');
+              if (ac) ac.innerHTML = '<div class="audio-loading"><div class="spinner"></div> Generuji hlas...</div>';
+            }
+            continue;
+          }
+          if (parsed.type === 'audio_chunk' && parsed.data) {
+            const binary = atob(parsed.data);
+            const bytes = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+            audioChunks.push(bytes);
+            continue;
+          }
+          if (parsed.type === 'tts_done') {
+            ttsStreaming = false;
+            if (audioChunks.length > 0 && messageDiv) {
+              const audioBlob = new Blob(audioChunks, { type: 'audio/mpeg' });
+              const audioUrl = URL.createObjectURL(audioBlob);
+              const audio = new Audio(audioUrl);
+              const ac = messageDiv.querySelector('[id^="audioContainer"]');
+              if (ac) renderAudioPlayer(ac, audio);
+              messageDiv.classList.add('voice-only');
+              try {
+                await audio.play();
+                const btn = ac?.querySelector('.audio-btn');
+                if (btn) { btn.textContent = '⏸'; btn.dataset.state = 'playing'; }
+              } catch (e) { /* autoplay blocked */ }
+              messageDiv.classList.add('audio-ready');
+              sessionStats.totalTtsChars += assistantText.length;
+              if (sessionStats.creditBalance !== null) {
+                sessionStats.creditBalance = Math.max(0, sessionStats.creditBalance - 5);
+                updateCreditDisplay();
+              }
+            }
+            continue;
+          }
+          if (parsed.type === 'tts_error') {
+            ttsStreaming = false;
+            if (messageDiv) {
+              const ac = messageDiv.querySelector('[id^="audioContainer"]');
+              if (ac) ac.innerHTML = '<div class="audio-loading" style="color:#ef4444">❌ Chyba při generování hlasu</div>';
+              messageDiv.classList.add('audio-ready');
+            }
+            continue;
+          }
+
           if (parsed.type === 'content_block_delta' && parsed.delta?.type === 'text_delta') {
             const newText = parsed.delta.text;
             assistantText += newText;
@@ -1812,20 +1863,14 @@ async function sendMessage() {
         requestAnimationFrame(() => costDiv.classList.add('visible'));
       }
 
-      // TTS — voice-only mode hides text after audio is ready
-      if (responseMode === 'audio' && messageDiv) {
+      // TTS — if audio wasn't streamed inline (fallback for old backend), use separate call
+      if (responseMode === 'audio' && messageDiv && audioChunks.length === 0 && !ttsStreaming) {
         const audioContainer = messageDiv.querySelector('[id^="audioContainer"]');
         if (audioContainer) {
           const ttsText = stripCardMarkers(assistantText);
           await generateAudio(ttsText, audioContainer);
           sessionStats.totalTtsChars += ttsText.length;
           messageDiv.classList.add('voice-only');
-          const costDiv = messageDiv.querySelector('.msg-cost');
-          if (costDiv) {
-            const ttsSpan = document.createElement('span');
-            ttsSpan.textContent = `🔊 ${assistantText.length.toLocaleString('cs-CZ')} znaků`;
-            costDiv.appendChild(ttsSpan);
-          }
         }
       }
 
