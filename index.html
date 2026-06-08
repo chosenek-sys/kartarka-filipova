@@ -19,7 +19,7 @@
   <img src="images/logo.jpg" alt="AI Zdenka" class="logo-icon">
   <h1>AI Zdenka</h1>
   <p>AI asistentka inspirovaná Zdenkou Filipovou. Přihlaste se pro duchovní vedení a podporu.</p>
-  <div class="auth-form">
+  <form class="auth-form" onsubmit="return false" autocomplete="on">
     <div id="registerFields" class="hidden">
       <input type="text" class="auth-input" id="authFirstName" placeholder="Křestní jméno *" autocomplete="given-name" style="margin-bottom:.5rem" required>
       <input type="text" class="auth-input" id="authLastName" placeholder="Příjmení (volitelné)" autocomplete="family-name" style="margin-bottom:.5rem">
@@ -35,12 +35,12 @@
     <input type="email" class="auth-input" id="authEmail" placeholder="Email" autocomplete="email">
     <input type="password" class="auth-input" id="authPassword" placeholder="Heslo" autocomplete="current-password">
     <input type="password" class="auth-input hidden" id="authPasswordConfirm" placeholder="Zopakujte heslo" autocomplete="new-password">
-    <button class="btn-enter" id="loginBtn" onclick="handleLogin()">Přihlásit se</button>
-    <button class="btn-enter hidden" id="registerBtn" onclick="handleRegister()">Registrovat se</button>
+    <button type="button" class="btn-enter" id="loginBtn" onclick="handleLogin()">Přihlásit se</button>
+    <button type="button" class="btn-enter hidden" id="registerBtn" onclick="handleRegister()">Registrovat se</button>
     <div class="auth-error" id="authError"></div>
-    <button class="auth-link" id="authToggle" onclick="toggleAuthMode()">Nemáte účet? Registrovat se</button>
-    <button class="auth-link" onclick="handleForgotPassword()">Zapomněli jste heslo?</button>
-  </div>
+    <button type="button" class="auth-link" id="authToggle" onclick="toggleAuthMode()">Nemáte účet? Registrovat se</button>
+    <button type="button" class="auth-link" onclick="handleForgotPassword()">Zapomněli jste heslo?</button>
+  </form>
 </div>
 
 <!-- CHAT APP -->
