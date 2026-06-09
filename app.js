@@ -1735,6 +1735,7 @@ async function sendMessage() {
               // Auto-play first segment immediately (background, no visible player)
               if (segmentBlobs.length === 1) {
                 messageDiv?.classList.add('voice-only');
+                messageDiv?.classList.add('audio-ready');
                 playNextSegment();
               }
             }
@@ -1749,6 +1750,7 @@ async function sendMessage() {
               audioChunks = [];
               if (segmentBlobs.length === 1) {
                 messageDiv?.classList.add('voice-only');
+                messageDiv?.classList.add('audio-ready');
                 playNextSegment();
               }
             }
@@ -1910,7 +1912,7 @@ async function sendMessage() {
       }
 
       // TTS — if audio wasn't streamed inline (fallback for old backend), use separate call
-      if (responseMode === 'audio' && messageDiv && audioChunks.length === 0 && !ttsStreaming) {
+      if (responseMode === 'audio' && messageDiv && allAudioChunks.length === 0 && segmentBlobs.length === 0 && !ttsStreaming) {
         const audioContainer = messageDiv.querySelector('[id^="audioContainer"]');
         if (audioContainer) {
           const ttsText = stripCardMarkers(assistantText);
