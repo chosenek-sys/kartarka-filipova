@@ -1587,11 +1587,40 @@ async function sendMessage() {
     let streamingDeckType = null;
     let contextFilterBuffer = '';
     let insideFilterTag = null;
-    let audioChunks = [];
+    let audioChunks = [];        // chunks for current segment
+    let allAudioChunks = [];     // ALL chunks across all segments
+    let segmentBlobs = [];       // completed segment blobs for sequential playback
     let ttsStreaming = false;
-    let audioPlaybackStarted = false;
-    let streamingAudio = null;
-    let streamingAudioContainer = null;
+    let currentSegmentAudio = null;
+    let segmentPlayIndex = 0;
+    let ttsFullyDone = false;
+
+    function playNextSegment() {
+      if (segmentPlayIndex >= segmentBlobs.length) {
+        // All segments played — show merged player if TTS is done
+        if (ttsFullyDone) showMergedPlayer();
+        return;
+      }
+      const blob = segmentBlobs[segmentPlayIndex++];
+      currentSegmentAudio = new Audio(URL.createObjectURL(blob));
+      currentSegmentAudio.onended = () => playNextSegment();
+      currentSegmentAudio.play().catch(() => {});
+    }
+
+    function showMergedPlayer() {
+      if (!messageDiv || allAudioChunks.length === 0) return;
+      const fullBlob = new Blob(allAudioChunks, { type: 'audio/mpeg' });
+      const fullAudio = new Audio(URL.createObjectURL(fullBlob));
+      const ac = messageDiv.querySelector('[id^="audioContainer"]');
+      if (ac) renderAudioPlayer(ac, fullAudio);
+      messageDiv.classList.add('voice-only');
+      messageDiv.classList.add('audio-ready');
+      sessionStats.totalTtsChars += assistantText.length;
+      if (sessionStats.creditBalance !== null) {
+        sessionStats.creditBalance = Math.max(0, sessionStats.creditBalance - 5);
+        updateCreditDisplay();
+      }
+    }
 
     const FILTER_TAGS = [
       { open: '<card_draw>', close: '</card_draw>' },
@@ -1688,56 +1717,37 @@ async function sendMessage() {
             const bytes = new Uint8Array(binary.length);
             for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
             audioChunks.push(bytes);
-            // Start playback after ~32KB buffered (about 2s of MP3)
-            if (!audioPlaybackStarted) {
-              const totalSize = audioChunks.reduce((s, c) => s + c.length, 0);
-              if (totalSize >= 32000) {
-                audioPlaybackStarted = true;
-                const partialBlob = new Blob(audioChunks, { type: 'audio/mpeg' });
-                streamingAudio = new Audio(URL.createObjectURL(partialBlob));
-                streamingAudioContainer = messageDiv?.querySelector('[id^="audioContainer"]');
-                if (streamingAudioContainer) renderAudioPlayer(streamingAudioContainer, streamingAudio);
+            allAudioChunks.push(bytes);
+            continue;
+          }
+          if (parsed.type === 'audio_segment_done') {
+            // Segment complete — create blob and queue for playback
+            if (audioChunks.length > 0) {
+              const segBlob = new Blob(audioChunks, { type: 'audio/mpeg' });
+              segmentBlobs.push(segBlob);
+              audioChunks = [];
+              // Auto-play first segment immediately (background, no visible player)
+              if (segmentBlobs.length === 1) {
                 messageDiv?.classList.add('voice-only');
-                try {
-                  await streamingAudio.play();
-                  const btn = streamingAudioContainer?.querySelector('.audio-btn');
-                  if (btn) { btn.textContent = '⏸'; btn.dataset.state = 'playing'; }
-                } catch (e) { /* autoplay blocked */ }
+                playNextSegment();
               }
             }
             continue;
           }
           if (parsed.type === 'tts_done') {
             ttsStreaming = false;
-            if (audioChunks.length > 0 && messageDiv) {
-              const fullBlob = new Blob(audioChunks, { type: 'audio/mpeg' });
-              const fullUrl = URL.createObjectURL(fullBlob);
-              if (streamingAudio) {
-                // Replace partial audio with full — preserve playback position
-                const currentTime = streamingAudio.currentTime;
-                const wasPlaying = !streamingAudio.paused;
-                streamingAudio.src = fullUrl;
-                streamingAudio.currentTime = currentTime;
-                if (wasPlaying) streamingAudio.play().catch(() => {});
-              } else {
-                // Never started streaming — play full audio now
-                const audio = new Audio(fullUrl);
-                const ac = messageDiv.querySelector('[id^="audioContainer"]');
-                if (ac) renderAudioPlayer(ac, audio);
-                messageDiv.classList.add('voice-only');
-                try {
-                  await audio.play();
-                  const btn = ac?.querySelector('.audio-btn');
-                  if (btn) { btn.textContent = '⏸'; btn.dataset.state = 'playing'; }
-                } catch (e) { /* autoplay blocked */ }
-              }
-              messageDiv.classList.add('audio-ready');
-              sessionStats.totalTtsChars += assistantText.length;
-              if (sessionStats.creditBalance !== null) {
-                sessionStats.creditBalance = Math.max(0, sessionStats.creditBalance - 5);
-                updateCreditDisplay();
+            ttsFullyDone = true;
+            // Flush any remaining chunks as final segment
+            if (audioChunks.length > 0) {
+              segmentBlobs.push(new Blob(audioChunks, { type: 'audio/mpeg' }));
+              audioChunks = [];
+              if (segmentBlobs.length === 1) {
+                messageDiv?.classList.add('voice-only');
+                playNextSegment();
               }
             }
+            // If all segments already played, show final merged player now
+            if (segmentPlayIndex >= segmentBlobs.length) showMergedPlayer();
             continue;
           }
           if (parsed.type === 'tts_error') {
