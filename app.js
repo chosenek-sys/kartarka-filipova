@@ -1609,6 +1609,12 @@ async function sendMessage() {
 
     function showMergedPlayer() {
       if (!messageDiv || allAudioChunks.length === 0) return;
+      // Stop any currently playing segment
+      if (currentSegmentAudio) {
+        currentSegmentAudio.onended = null;
+        currentSegmentAudio.pause();
+        currentSegmentAudio = null;
+      }
       const fullBlob = new Blob(allAudioChunks, { type: 'audio/mpeg' });
       const fullAudio = new Audio(URL.createObjectURL(fullBlob));
       const ac = messageDiv.querySelector('[id^="audioContainer"]');
@@ -1708,7 +1714,7 @@ async function sendMessage() {
             ttsStreaming = true;
             if (messageDiv) {
               const ac = messageDiv.querySelector('[id^="audioContainer"]');
-              if (ac) ac.innerHTML = '<div class="audio-loading"><div class="spinner"></div> Generuji hlas...</div>';
+              if (ac) ac.innerHTML = '<div class="audio-loading"><div class="spinner"></div> AI Zdenka odpovídá...</div>';
             }
             continue;
           }
