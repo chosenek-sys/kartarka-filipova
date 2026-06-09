@@ -1589,6 +1589,9 @@ async function sendMessage() {
     let insideFilterTag = null;
     let audioChunks = [];
     let ttsStreaming = false;
+    let audioPlaybackStarted = false;
+    let streamingAudio = null;
+    let streamingAudioContainer = null;
 
     const FILTER_TAGS = [
       { open: '<card_draw>', close: '</card_draw>' },
@@ -1685,22 +1688,49 @@ async function sendMessage() {
             const bytes = new Uint8Array(binary.length);
             for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
             audioChunks.push(bytes);
+            // Start playback after ~32KB buffered (about 2s of MP3)
+            if (!audioPlaybackStarted) {
+              const totalSize = audioChunks.reduce((s, c) => s + c.length, 0);
+              if (totalSize >= 32000) {
+                audioPlaybackStarted = true;
+                const partialBlob = new Blob(audioChunks, { type: 'audio/mpeg' });
+                streamingAudio = new Audio(URL.createObjectURL(partialBlob));
+                streamingAudioContainer = messageDiv?.querySelector('[id^="audioContainer"]');
+                if (streamingAudioContainer) renderAudioPlayer(streamingAudioContainer, streamingAudio);
+                messageDiv?.classList.add('voice-only');
+                try {
+                  await streamingAudio.play();
+                  const btn = streamingAudioContainer?.querySelector('.audio-btn');
+                  if (btn) { btn.textContent = '⏸'; btn.dataset.state = 'playing'; }
+                } catch (e) { /* autoplay blocked */ }
+              }
+            }
             continue;
           }
           if (parsed.type === 'tts_done') {
             ttsStreaming = false;
             if (audioChunks.length > 0 && messageDiv) {
-              const audioBlob = new Blob(audioChunks, { type: 'audio/mpeg' });
-              const audioUrl = URL.createObjectURL(audioBlob);
-              const audio = new Audio(audioUrl);
-              const ac = messageDiv.querySelector('[id^="audioContainer"]');
-              if (ac) renderAudioPlayer(ac, audio);
-              messageDiv.classList.add('voice-only');
-              try {
-                await audio.play();
-                const btn = ac?.querySelector('.audio-btn');
-                if (btn) { btn.textContent = '⏸'; btn.dataset.state = 'playing'; }
-              } catch (e) { /* autoplay blocked */ }
+              const fullBlob = new Blob(audioChunks, { type: 'audio/mpeg' });
+              const fullUrl = URL.createObjectURL(fullBlob);
+              if (streamingAudio) {
+                // Replace partial audio with full — preserve playback position
+                const currentTime = streamingAudio.currentTime;
+                const wasPlaying = !streamingAudio.paused;
+                streamingAudio.src = fullUrl;
+                streamingAudio.currentTime = currentTime;
+                if (wasPlaying) streamingAudio.play().catch(() => {});
+              } else {
+                // Never started streaming — play full audio now
+                const audio = new Audio(fullUrl);
+                const ac = messageDiv.querySelector('[id^="audioContainer"]');
+                if (ac) renderAudioPlayer(ac, audio);
+                messageDiv.classList.add('voice-only');
+                try {
+                  await audio.play();
+                  const btn = ac?.querySelector('.audio-btn');
+                  if (btn) { btn.textContent = '⏸'; btn.dataset.state = 'playing'; }
+                } catch (e) { /* autoplay blocked */ }
+              }
               messageDiv.classList.add('audio-ready');
               sessionStats.totalTtsChars += assistantText.length;
               if (sessionStats.creditBalance !== null) {
