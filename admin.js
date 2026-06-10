@@ -168,8 +168,15 @@ async function handleAdminLogin() {
   }
 }
 
+let _loggingOut = false;
 async function handleAdminLogout() {
-  await supabaseClient.auth.signOut();
+  if (_loggingOut) return;
+  _loggingOut = true;
+  try {
+    await supabaseClient.auth.signOut();
+  } catch (e) {
+    console.error('Sign out error:', e);
+  }
   currentSession = null;
   selectedUserId = null;
   hide($('adminApp'));
@@ -180,6 +187,7 @@ async function handleAdminLogout() {
   $('loginBtn').textContent = 'Přihlásit se';
   $('authEmail').value = '';
   $('authPassword').value = '';
+  _loggingOut = false;
 }
 
 async function checkAdminAccess() {
