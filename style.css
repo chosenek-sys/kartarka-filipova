@@ -510,9 +510,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
 .magic-card .card-back.magic-back::before{content:'🗺️';font-size:1.8rem;animation:card-pulse 2s ease-in-out infinite;backface-visibility:hidden}
 .magic-card .card-back.magic-back::after{border-color:rgba(74,140,168,.2);backface-visibility:hidden}
 
-/* Auth DOB/GDPR Fields */
-.auth-dob-row{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
-.auth-dob-label{font-size:.82rem;color:var(--muted);white-space:nowrap}
-.auth-dob-row .auth-input{flex:1}
-input[type="date"].auth-input{font-family:'Inter',sans-serif;color:var(--text)}
-input[type="date"].auth-input::-webkit-calendar-picker-indicator{filter:invert(.3)}
+/* Auth Name Row & GDPR */
+.auth-name-row{display:flex;gap:.5rem}
+.auth-name-row .auth-input{flex:1;min-width:0}
+.auth-gdpr-label{display:flex;align-items:flex-start;gap:.5rem;font-size:.78rem;color:var(--muted);cursor:pointer;line-height:1.4;padding:.2rem 0}
+.auth-gdpr-label input[type="checkbox"]{margin-top:2px;accent-color:var(--brown);flex-shrink:0}

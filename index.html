@@ -21,15 +21,14 @@
   <p>AI asistentka inspirovaná Zdenkou Filipovou. Přihlaste se pro duchovní vedení a podporu.</p>
   <form class="auth-form" onsubmit="return false" autocomplete="on">
     <div id="registerFields" class="hidden">
-      <input type="text" class="auth-input" id="authFirstName" placeholder="Křestní jméno *" autocomplete="given-name" style="margin-bottom:.5rem" required>
-      <input type="text" class="auth-input" id="authLastName" placeholder="Příjmení (volitelné)" autocomplete="family-name" style="margin-bottom:.5rem">
-      <div class="auth-dob-row" style="margin-bottom:.5rem">
-        <label for="authDob" class="auth-dob-label">Datum narození (volitelné):</label>
-        <input type="text" class="auth-input" id="authDob" placeholder="dd/mm/yyyy" inputmode="numeric" maxlength="10" style="max-width:200px">
+      <div class="auth-name-row">
+        <input type="text" class="auth-input" id="authFirstName" placeholder="Křestní jméno *" autocomplete="given-name" required>
+        <input type="text" class="auth-input" id="authLastName" placeholder="Příjmení" autocomplete="family-name">
       </div>
-      <label class="auth-gdpr-label" style="margin-bottom:.75rem;display:flex;align-items:flex-start;gap:.5rem;font-size:.8rem;color:#6b5b4b">
-        <input type="checkbox" id="authGdpr" style="margin-top:3px">
-        <span>Souhlasím se zpracováním osobních údajů (datum narození) dle GDPR pro účely duchovního poradenství.</span>
+      <input type="text" class="auth-input" id="authDob" placeholder="Datum narození * (dd/mm/yyyy)" inputmode="numeric" maxlength="10">
+      <label class="auth-gdpr-label">
+        <input type="checkbox" id="authGdpr">
+        <span>Souhlasím se zpracováním osobních údajů dle GDPR pro účely duchovního poradenství.</span>
       </label>
     </div>
     <input type="email" class="auth-input" id="authEmail" placeholder="Email" autocomplete="email">
