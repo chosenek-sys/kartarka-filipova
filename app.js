@@ -734,15 +734,7 @@ function updateCreditDisplay() {
   el.classList.toggle('danger', balance <= 3);
 }
 
-function updateFreeCreditsGate() {
-  const isFreeOnly = sessionStats.totalEarned !== null && sessionStats.totalEarned <= 10;
-  const textBtn = document.querySelector('#modeModal .mode-choice-btn');
-  if (textBtn && isFreeOnly) {
-    textBtn.disabled = true;
-    textBtn.title = 'Pro textové zprávy si prosím zakupte kredity';
-    textBtn.classList.add('mode-choice-disabled');
-  }
-}
+
 
 // ============ TYPEWRITER ENGINE ============
 const typewriterState = { buffer: '', rendered: '', animFrameId: null, bubbleEl: null };
@@ -806,7 +798,6 @@ async function fetchCredits() {
       sessionStats.creditBalance = data.userCredits.balance;
       sessionStats.totalEarned = data.userCredits.total_earned;
       updateCreditDisplay();
-      updateFreeCreditsGate();
     } else {
       // Fallback for old backend that doesn't return userCredits yet
       const el = document.getElementById('userCredits');
@@ -1559,13 +1550,10 @@ async function sendMessage(retryCount = 0) {
     const requiredCredits = responseMode === 'audio' ? 5 : 1;
     if (sessionStats.creditBalance < requiredCredits) {
       hideTyping();
-      if (responseMode === 'audio') {
-        addMessage('assistant', '💎 Nemáte dostatek kreditů pro hlasovou odpověď (vyžaduje 5 kreditů). Přepněte na textový režim nebo si doplňte kredity.');
-      } else {
-        addMessage('assistant', '💎 Nemáte dostatek kreditů. Kontaktujte nás pro doplnění.');
-      }
+      addMessage('assistant', '✨ Milá duše, AI Zdenka by vám ráda odpověděla, ale vaše kredity právě došly. Doplňte si je a můžeme pokračovat v naší společné cestě. 💎');
       isGenerating = false;
       document.getElementById('sendBtn').disabled = false;
+      setTimeout(() => openPurchaseModal(), 1200);
       return;
     }
   }
@@ -1619,10 +1607,26 @@ async function sendMessage(retryCount = 0) {
     }
 
     if (response.status === 402) {
-      const errData = await response.json().catch(() => ({}));
-      addMessage('assistant', errData.error || '💎 Nemáte dostatek kreditů. Kontaktujte nás pro doplnění.');
+      await response.json().catch(() => ({}));
+      addMessage('assistant', '✨ Milá duše, AI Zdenka by vám ráda odpověděla, ale vaše kredity právě došly. Doplňte si je a můžeme pokračovat v naší společné cestě. 💎');
       sessionStats.creditBalance = 0;
       updateCreditDisplay();
+      isGenerating = false;
+      document.getElementById('sendBtn').disabled = false;
+      setTimeout(() => openPurchaseModal(), 1200);
+      return;
+    }
+
+    if (response.status === 403) {
+      const errData = await response.json().catch(() => ({}));
+      if (errData.code === 'FREE_CREDITS_GATE') {
+        addMessage('assistant', '\u2728 Mil\u00e1 du\u0161e, AI Zdenka by v\u00e1m r\u00e1da odpov\u011bd\u011bla, ale va\u0161e kredity pr\u00e1v\u011b do\u0161ly. Dopl\u0148te si je a m\u016f\u017eeme pokra\u010dovat v na\u0161\u00ed spole\u010dn\u00e9 cest\u011b. \ud83d\udc8e');
+        isGenerating = false;
+        document.getElementById('sendBtn').disabled = false;
+        setTimeout(() => openPurchaseModal(), 1200);
+        return;
+      }
+      addMessage('assistant', errData.error || 'Omlouv\u00e1m se, n\u011bco se pokazilo.');
       isGenerating = false;
       document.getElementById('sendBtn').disabled = false;
       return;
