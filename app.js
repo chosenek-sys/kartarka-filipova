@@ -181,6 +181,11 @@ async function initAuth() {
   }
 
   supabaseClient.auth.onAuthStateChange((event, session) => {
+    if (event === 'PASSWORD_RECOVERY' && session) {
+      // User clicked the password reset link in their email
+      showPasswordResetModal();
+      return;
+    }
     if (event === 'SIGNED_IN' && session && !chatInitialized) {
       showChat(session.user);
       chatInitialized = true;
@@ -316,13 +321,66 @@ async function handleForgotPassword() {
     return;
   }
   const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
-    redirectTo: window.location.origin + window.location.pathname,
+    redirectTo: window.location.origin + '/',
   });
   if (!error) {
     errorEl.style.color = '#22c55e';
     errorEl.textContent = 'Odkaz pro obnovení hesla byl odeslán na váš email.';
   } else {
-    errorEl.textContent = 'Nepodařilo se odeslat odkaz.';
+}
+
+function showPasswordResetModal() {
+  const existing = document.getElementById('passwordResetModal');
+  if (existing) existing.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'passwordResetModal';
+  modal.className = 'modal-overlay';
+  modal.innerHTML = `
+    <div class="modal-card" style="max-width:420px">
+      <h3 style="margin-bottom:1rem;text-align:center">&#128273; Nastavte si nov&eacute; heslo</h3>
+      <input type="password" class="auth-input" id="newPassword" placeholder="Nov&eacute; heslo" autocomplete="new-password" style="margin-bottom:.6rem">
+      <input type="password" class="auth-input" id="newPasswordConfirm" placeholder="Zopakujte nov&eacute; heslo" autocomplete="new-password" style="margin-bottom:.8rem">
+      <button type="button" class="btn-enter" onclick="submitNewPassword()" id="resetSubmitBtn">Nastavit nov&eacute; heslo</button>
+      <div class="auth-error" id="resetError" style="margin-top:.5rem"></div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+}
+
+async function submitNewPassword() {
+  const password = document.getElementById('newPassword').value;
+  const confirm = document.getElementById('newPasswordConfirm').value;
+  const errorEl = document.getElementById('resetError');
+  const btn = document.getElementById('resetSubmitBtn');
+  errorEl.textContent = '';
+  errorEl.style.color = '';
+
+  if (!password || password.length < 6) {
+    errorEl.textContent = 'Heslo mus\u00ed m\u00edt alespo\u0148 6 znak\u016f.';
+    return;
+  }
+  if (password !== confirm) {
+    errorEl.textContent = 'Hesla se neshoduj\u00ed.';
+    return;
+  }
+
+  btn.disabled = true;
+  const { error } = await supabaseClient.auth.updateUser({ password });
+  btn.disabled = false;
+
+  if (!error) {
+    errorEl.style.color = '#22c55e';
+    errorEl.textContent = 'Heslo bylo \u00fasp\u011b\u0161n\u011b zm\u011bn\u011bno!';
+    setTimeout(() => {
+      const modal = document.getElementById('passwordResetModal');
+      if (modal) modal.remove();
+      if (window.location.hash) {
+        history.replaceState(null, '', window.location.pathname);
+      }
+    }, 1500);
+  } else {
+    errorEl.textContent = 'Nepoda\u0159ilo se zm\u011bnit heslo: ' + (error.message || 'Nezn\u00e1m\u00e1 chyba');
   }
 }
 
@@ -1458,9 +1516,9 @@ function hideTyping() {
 
 let pendingFirstMessage = null;
 
-async function sendMessage() {
+async function sendMessage(retryCount = 0) {
   const input = document.getElementById('chatInput');
-  const userText = input.value.trim();
+  const userText = retryCount > 0 ? (conversationHistory[conversationHistory.length - 1]?.content || '') : input.value.trim();
   if (!userText || isGenerating) return;
 
   if (!modeLockedForConversation) {
@@ -1477,10 +1535,13 @@ async function sendMessage() {
     currentConversationId = generateUUID();
   }
 
-  addMessage('user', userText);
-  conversationHistory.push({ role: 'user', content: userText });
-  input.value = '';
-  autoResize(input);
+  // Only add user message to DOM/history on first attempt, not on retry
+  if (retryCount === 0) {
+    addMessage('user', userText);
+    conversationHistory.push({ role: 'user', content: userText });
+    input.value = '';
+    autoResize(input);
+  }
   showTyping();
 
   const token = await getAccessToken();
@@ -1936,6 +1997,14 @@ async function sendMessage() {
     hideTyping();
     typewriterFlush();
     console.error('Chat error:', error);
+    if (retryCount < 2) {
+      console.warn(`Chat fetch failed, retrying (${retryCount + 1}/2)...`);
+      isGenerating = false;
+      document.getElementById('sendBtn').disabled = false;
+      // Brief delay before retry
+      await new Promise(r => setTimeout(r, 1500 + retryCount * 1500));
+      return sendMessage(retryCount + 1);
+    }
     addMessage('assistant', 'Zdenka potřebuje chvíli na meditaci. Zkuste to prosím za okamžik. 🙏');
   }
 
@@ -2095,6 +2164,7 @@ window.purchaseCredits = purchaseCredits;
 window.switchPurchaseTab = switchPurchaseTab;
 window.subscribeTier = subscribeTier;
 window.openBillingPortal = openBillingPortal;
+window.submitNewPassword = submitNewPassword;
 
 initAuth();
 
