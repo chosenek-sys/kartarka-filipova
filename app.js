@@ -327,6 +327,8 @@ async function handleForgotPassword() {
     errorEl.style.color = '#22c55e';
     errorEl.textContent = 'Odkaz pro obnovení hesla byl odeslán na váš email.';
   } else {
+    errorEl.textContent = 'Nepodařilo se odeslat odkaz.';
+  }
 }
 
 function showPasswordResetModal() {
