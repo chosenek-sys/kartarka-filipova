@@ -808,6 +808,35 @@ async function fetchCredits() {
   }
 }
 
+// ============ CREDIT ARROW HINT ============
+function showCreditArrowHint() {
+  // Remove any existing arrow
+  const existing = document.querySelector('.credit-arrow-hint');
+  if (existing) existing.remove();
+
+  const btn = document.getElementById('creditBuyBtn');
+  if (!btn) return;
+
+  // Add pulsing glow to the button
+  btn.style.animation = 'creditBtnPulse 1.2s ease-in-out infinite';
+
+  // Create the arrow element
+  const arrow = document.createElement('div');
+  arrow.className = 'credit-arrow-hint';
+  arrow.innerHTML = '<div class="arrow-icon">☝️</div><div class="arrow-label">Klikn\u011bte sem</div>';
+  btn.appendChild(arrow);
+
+  // Auto-remove after 6 seconds
+  const removeHint = () => {
+    arrow.remove();
+    btn.style.animation = '';
+  };
+  setTimeout(removeHint, 6000);
+
+  // Also remove on button click (the button's onclick already opens the modal)
+  btn.addEventListener('click', removeHint, { once: true });
+}
+
 // ============ CREDIT PURCHASE ============
 function openPurchaseModal() {
   const modal = document.getElementById('purchaseModal');
@@ -1553,7 +1582,7 @@ async function sendMessage(retryCount = 0) {
       addMessage('assistant', '✨ Milá duše, AI Zdenka by vám ráda odpověděla, ale vaše kredity právě došly. Doplňte si je a můžeme pokračovat v naší společné cestě. 💎');
       isGenerating = false;
       document.getElementById('sendBtn').disabled = false;
-      setTimeout(() => openPurchaseModal(), 1200);
+      setTimeout(() => showCreditArrowHint(), 800);
       return;
     }
   }
@@ -1613,7 +1642,7 @@ async function sendMessage(retryCount = 0) {
       updateCreditDisplay();
       isGenerating = false;
       document.getElementById('sendBtn').disabled = false;
-      setTimeout(() => openPurchaseModal(), 1200);
+      setTimeout(() => showCreditArrowHint(), 800);
       return;
     }
 
@@ -1623,7 +1652,7 @@ async function sendMessage(retryCount = 0) {
         addMessage('assistant', '\u2728 Mil\u00e1 du\u0161e, AI Zdenka by v\u00e1m r\u00e1da odpov\u011bd\u011bla, ale va\u0161e kredity pr\u00e1v\u011b do\u0161ly. Dopl\u0148te si je a m\u016f\u017eeme pokra\u010dovat v na\u0161\u00ed spole\u010dn\u00e9 cest\u011b. \ud83d\udc8e');
         isGenerating = false;
         document.getElementById('sendBtn').disabled = false;
-        setTimeout(() => openPurchaseModal(), 1200);
+        setTimeout(() => showCreditArrowHint(), 800);
         return;
       }
       addMessage('assistant', errData.error || 'Omlouv\u00e1m se, n\u011bco se pokazilo.');
