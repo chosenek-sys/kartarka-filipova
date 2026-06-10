@@ -25,7 +25,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
 @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
 .auth-screen h1{font-family:'Cinzel',serif;font-size:1.8rem;color:var(--brown);letter-spacing:2px}
 .auth-screen p{color:var(--muted);max-width:380px;font-size:.95rem}
-.auth-form{display:flex;flex-direction:column;gap:.5rem;width:100%;max-width:340px}
+.auth-form{display:flex;flex-direction:column;gap:.5rem;width:100%;max-width:400px}
 .auth-input{background:var(--white);border:1px solid rgba(107,58,42,.2);border-radius:50px;padding:.75rem 1.2rem;color:var(--text);font-family:'Inter',sans-serif;font-size:.95rem;outline:none;transition:border-color .3s}
 .auth-input:focus{border-color:var(--brown)}
 .auth-input::placeholder{color:var(--muted2)}
