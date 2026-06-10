@@ -246,15 +246,17 @@ async function handleRegister() {
     return;
   }
   let dob = '';
-  if (dobRaw) {
-    const m = dobRaw.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-    if (!m) {
-      errorEl.textContent = 'Datum narození musí být ve formátu dd/mm/yyyy.';
-      return;
-    }
-    dob = `${m[3]}-${m[2]}-${m[1]}`;
+  if (!dobRaw) {
+    errorEl.textContent = 'Vyplňte prosím datum narození.';
+    return;
   }
-  if (dob && !gdprConsent) {
+  const m = dobRaw.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (!m) {
+    errorEl.textContent = 'Datum narození musí být ve formátu dd/mm/yyyy.';
+    return;
+  }
+  dob = `${m[3]}-${m[2]}-${m[1]}`;
+  if (!gdprConsent) {
     errorEl.textContent = 'Pro zpracování data narození je nutný souhlas s GDPR.';
     return;
   }
