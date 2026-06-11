@@ -354,18 +354,37 @@ async function handleLogout() {
 async function handleForgotPassword() {
   const email = document.getElementById('authEmail').value.trim();
   const errorEl = document.getElementById('authError');
+  const forgotBtn = document.querySelector('[onclick="handleForgotPassword()"]');
   if (!email) {
     errorEl.textContent = 'Zadejte email pro obnovení hesla.';
     return;
   }
+  // Disable button immediately to prevent multiple clicks
+  if (forgotBtn) {
+    forgotBtn.disabled = true;
+    forgotBtn.textContent = 'Odesílám...';
+  }
+  errorEl.textContent = '';
+  errorEl.style.color = '';
   const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
     redirectTo: window.location.origin + window.location.pathname,
   });
   if (!error) {
     errorEl.style.color = '#22c55e';
     errorEl.textContent = 'Odkaz pro obnovení hesla byl odeslán na váš email.';
+    // Keep button disabled for 30s to prevent spam
+    setTimeout(() => {
+      if (forgotBtn) {
+        forgotBtn.disabled = false;
+        forgotBtn.textContent = 'Zapomněli jste heslo?';
+      }
+    }, 30000);
   } else {
     errorEl.textContent = 'Nepodařilo se odeslat odkaz.';
+    if (forgotBtn) {
+      forgotBtn.disabled = false;
+      forgotBtn.textContent = 'Zapomněli jste heslo?';
+    }
   }
 }
 
