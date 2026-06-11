@@ -172,6 +172,9 @@ async function getAccessToken() {
 let chatInitialized = false;
 
 async function initAuth() {
+  // Check URL hash for Supabase auth errors (expired links, invalid OTP, etc.)
+  checkUrlHashErrors();
+
   const { data: { session } } = await supabaseClient.auth.getSession();
   if (session && !chatInitialized) {
     showChat(session.user);
@@ -195,6 +198,39 @@ async function initAuth() {
     }
     // TOKEN_REFRESHED and repeat SIGNED_IN events are ignored
   });
+}
+/**
+ * Parse Supabase error params from URL hash and display a user-friendly Czech message.
+ * Supabase redirects with hash fragments like:
+ *   #error=access_denied&error_code=otp_expired&error_description=Email+link+is+invalid+or+has+expired
+ */
+function checkUrlHashErrors() {
+  const hash = window.location.hash;
+  if (!hash || !hash.includes('error=')) return;
+
+  const params = new URLSearchParams(hash.substring(1));
+  const errorCode = params.get('error_code') || params.get('error') || '';
+
+  const ERROR_MESSAGES = {
+    'otp_expired': 'Odkaz pro obnovení hesla vypršel. Požádejte prosím o nový.',
+    'access_denied': 'Přístup zamítnut. Odkaz je neplatný nebo již byl použit.',
+    'otp_disabled': 'Odkaz je neplatný. Požádejte prosím o nový.',
+    'validation_failed': 'Odkaz je neplatný. Požádejte prosím o nový.',
+  };
+
+  const message = ERROR_MESSAGES[errorCode] || 'Odkaz je neplatný nebo vypršel. Zkuste to prosím znovu.';
+
+  // Show error on auth screen after a brief delay (DOM may not be ready yet)
+  setTimeout(() => {
+    const errorEl = document.getElementById('authError');
+    if (errorEl) {
+      errorEl.textContent = message;
+      errorEl.style.color = '';
+    }
+  }, 100);
+
+  // Clean URL hash so refreshing doesn't re-show the error
+  history.replaceState(null, '', window.location.pathname + window.location.search);
 }
 
 async function handleLogin() {
@@ -323,7 +359,7 @@ async function handleForgotPassword() {
     return;
   }
   const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
-    redirectTo: window.location.origin + '/',
+    redirectTo: window.location.origin + window.location.pathname,
   });
   if (!error) {
     errorEl.style.color = '#22c55e';
