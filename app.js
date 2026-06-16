@@ -1644,9 +1644,20 @@ async function sendMessage(retryCount = 0) {
     }
   }
 
+  // Abort + idle-timeout: if the backend goes silent (hung Claude/ElevenLabs, dropped connection),
+  // stop spinning after 45s of no data instead of rotating forever. The timer is reset on every
+  // chunk received, so a slow-but-steady stream is never falsely aborted.
+  let messageDiv = null;
+  const chatAbort = new AbortController();
+  let idleTimer = null;
+  const IDLE_MS = 45000;
+  const armIdle = () => { clearTimeout(idleTimer); idleTimer = setTimeout(() => chatAbort.abort(), IDLE_MS); };
+
   try {
+    armIdle();
     let response = await fetch(`${API_BASE}/api/chat`, {
       method: 'POST',
+      signal: chatAbort.signal,
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`,
@@ -1665,6 +1676,7 @@ async function sendMessage(retryCount = 0) {
       if (retryToken && retryToken !== token) {
         const retryResponse = await fetch(`${API_BASE}/api/chat`, {
           method: 'POST',
+          signal: chatAbort.signal,
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${retryToken}` },
           body: JSON.stringify({ messages: conversationHistory, conversation_id: currentConversationId, responseMode }),
         });
@@ -1731,8 +1743,9 @@ async function sendMessage(retryCount = 0) {
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
     let assistantText = '';
-    let messageDiv = null;
     let buffer = '';
+    let ttsAttempted = false;   // true once the backend signals any TTS activity (start/audio/error)
+    let serverError = false;    // true if the backend sent a structured {type:'error'} event
     let msgInputTokens = 0;
     let msgOutputTokens = 0;
     let cardMarkerBuffer = '';
@@ -1844,6 +1857,7 @@ async function sendMessage(retryCount = 0) {
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
+      armIdle();  // data arrived — reset the silence timer
 
       buffer += decoder.decode(value, { stream: true });
       const lines = buffer.split('\n');
@@ -1862,9 +1876,29 @@ async function sendMessage(retryCount = 0) {
           if (parsed.type === 'message_delta' && parsed.usage) {
             msgOutputTokens = parsed.usage.output_tokens || 0;
           }
+          // Structured backend error (timeout, Claude/ElevenLabs outage, empty completion).
+          // Stop spinning, show the warm Czech message, keep any partial text, and resync the
+          // (server-refunded) credit balance.
+          if (parsed.type === 'error') {
+            serverError = true;
+            const m = parsed.message || '✨ Spojení se Zdenkou je teď slabší — zkuste to prosím za okamžik. Nic vám nebylo strženo. 🙏';
+            if (responseMode === 'audio' && messageDiv) {
+              const ac = messageDiv.querySelector('[id^="audioContainer"]');
+              if (ac) ac.innerHTML = `<div class="audio-loading" style="color:#b4884d">${m}</div>`;
+              messageDiv.classList.add('audio-ready');
+            } else if (!messageDiv) {
+              messageDiv = addMessage('assistant', m);
+            } else {
+              typewriterFlush();
+              addMessage('assistant', m);
+            }
+            fetchCredits();
+            continue;
+          }
           // TTS streaming events (audio piped through same SSE connection)
           if (parsed.type === 'tts_start') {
             ttsStreaming = true;
+            ttsAttempted = true;
             if (messageDiv) {
               const ac = messageDiv.querySelector('[id^="audioContainer"]');
               if (ac) ac.innerHTML = '<div class="audio-loading"><div class="spinner"></div> AI Zdenka odpovídá...</div>';
@@ -1872,6 +1906,7 @@ async function sendMessage(retryCount = 0) {
             continue;
           }
           if (parsed.type === 'audio_chunk' && parsed.data) {
+            ttsAttempted = true;
             const binary = atob(parsed.data);
             const bytes = new Uint8Array(binary.length);
             for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
@@ -1913,11 +1948,14 @@ async function sendMessage(retryCount = 0) {
           }
           if (parsed.type === 'tts_error') {
             ttsStreaming = false;
+            ttsAttempted = true;
             if (messageDiv) {
               const ac = messageDiv.querySelector('[id^="audioContainer"]');
-              if (ac) ac.innerHTML = '<div class="audio-loading" style="color:#ef4444">❌ Chyba při generování hlasu</div>';
+              // Voice failed but the text answer is shown above. Backend refunds the voice credit.
+              if (ac) ac.innerHTML = '<div class="audio-loading" style="color:#b4884d">✨ Hlas se teď nepodařilo přivolat — text najdete výše. Za hlas vám nic nebylo strženo. 🙏</div>';
               messageDiv.classList.add('audio-ready');
             }
+            fetchCredits();
             continue;
           }
 
@@ -2026,6 +2064,7 @@ async function sendMessage(retryCount = 0) {
         } catch (parseError) { /* skip */ }
       }
     }
+    clearTimeout(idleTimer);  // stream finished cleanly — stop the silence watchdog
 
     // Flush any remaining context filter buffer
     if (contextFilterBuffer && !insideCardDraw) {
@@ -2041,6 +2080,18 @@ async function sendMessage(retryCount = 0) {
       cardMarkerBuffer = '';
     }
     typewriterFlush();
+
+    // Silent-drop guard: the stream ended (done) while we were mid-TTS without ever receiving a
+    // terminal tts_done/tts_error/error event (backend died / Vercel SIGKILL / abrupt disconnect).
+    // Without this the "AI Zdenka odpovídá..." spinner would rotate forever.
+    if (responseMode === 'audio' && messageDiv && ttsStreaming && !serverError
+        && allAudioChunks.length === 0 && segmentBlobs.length === 0) {
+      const ac = messageDiv.querySelector('[id^="audioContainer"]');
+      if (ac) ac.innerHTML = '<div class="audio-loading" style="color:#b4884d">✨ Spojení se Zdenkou se přerušilo — zkuste to prosím za okamžik. Nic vám nebylo strženo. 🙏</div>';
+      messageDiv.classList.add('audio-ready');
+      ttsStreaming = false;
+      fetchCredits();
+    }
 
     if (assistantText) {
       conversationHistory.push({ role: 'assistant', content: assistantText });
@@ -2064,8 +2115,11 @@ async function sendMessage(retryCount = 0) {
         requestAnimationFrame(() => costDiv.classList.add('visible'));
       }
 
-      // TTS — if audio wasn't streamed inline (fallback for old backend), use separate call
-      if (responseMode === 'audio' && messageDiv && allAudioChunks.length === 0 && segmentBlobs.length === 0 && !ttsStreaming) {
+      // TTS fallback for an OLD backend that never streamed inline audio (no tts_* events at all).
+      // Guard with !ttsAttempted so we don't fire a second (charged) TTS call after the new backend
+      // already tried and failed inline — that would double-charge and likely fail again.
+      if (responseMode === 'audio' && messageDiv && !ttsAttempted && !serverError
+          && allAudioChunks.length === 0 && segmentBlobs.length === 0 && !ttsStreaming) {
         const audioContainer = messageDiv.querySelector('[id^="audioContainer"]');
         if (audioContainer) {
           const ttsText = stripCardMarkers(assistantText);
@@ -2075,8 +2129,9 @@ async function sendMessage(retryCount = 0) {
         }
       }
 
-      // Optimistic credit update — show deducted balance immediately
-      if (sessionStats.creditBalance !== null) {
+      // Optimistic credit update — show deducted balance immediately (skip on a backend error,
+      // since the server refunded; fetchCredits() below reconciles to the true balance).
+      if (!serverError && sessionStats.creditBalance !== null) {
         sessionStats.creditBalance = Math.max(0, sessionStats.creditBalance - 1);
         updateCreditDisplay();
       }
@@ -2088,8 +2143,12 @@ async function sendMessage(retryCount = 0) {
   } catch (error) {
     hideTyping();
     typewriterFlush();
+    clearTimeout(idleTimer);
     console.error('Chat error:', error);
-    if (retryCount < 2) {
+    const aborted = error?.name === 'AbortError';
+    // Don't retry a timeout — the user already waited 45s; another 45-90s would be worse. Network
+    // blips (non-abort) still get the existing 2x retry.
+    if (!aborted && retryCount < 2) {
       console.warn(`Chat fetch failed, retrying (${retryCount + 1}/2)...`);
       isGenerating = false;
       document.getElementById('sendBtn').disabled = false;
@@ -2097,7 +2156,17 @@ async function sendMessage(retryCount = 0) {
       await new Promise(r => setTimeout(r, 1500 + retryCount * 1500));
       return sendMessage(retryCount + 1);
     }
-    addMessage('assistant', 'Zdenka potřebuje chvíli na meditaci. Zkuste to prosím za okamžik. 🙏');
+    const friendly = '✨ Spojení se Zdenkou je teď slabší — zkuste to prosím za okamžik. Nic vám nebylo strženo. 🙏';
+    if (responseMode === 'audio' && messageDiv) {
+      // Keep any partial text; just replace the spinner in the audio container.
+      const ac = messageDiv.querySelector('[id^="audioContainer"]');
+      if (ac) ac.innerHTML = `<div class="audio-loading" style="color:#b4884d">${friendly}</div>`;
+      messageDiv.classList.add('audio-ready');
+    } else {
+      addMessage('assistant', friendly);
+    }
+    // The backend refunds on its side; resync the balance so the UI matches.
+    fetchCredits();
   }
 
   isGenerating = false;
