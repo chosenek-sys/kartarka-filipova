@@ -28,7 +28,7 @@
       <input type="text" class="auth-input" id="authDob" placeholder="Datum narození * dd/mm/yyyy" inputmode="numeric" maxlength="10">
       <label class="auth-gdpr-label">
         <input type="checkbox" id="authGdpr">
-        <span>Souhlasím se zpracováním osobních údajů dle GDPR pro účely duchovního poradenství.</span>
+        <span>Souhlasím se zpracováním osobních údajů dle GDPR pro účely duchovního poradenství. Podrobnosti v <a href="soukromi.html" target="_blank" rel="noopener">zásadách ochrany osobních údajů</a>.</span>
       </label>
     </div>
     <input type="email" class="auth-input" id="authEmail" placeholder="Email" autocomplete="email">
@@ -207,6 +207,9 @@
   </div>
 </div>
 
+<!-- Must precede app.js: defines window.aizConsent / window.aizTrack and queues the
+     Consent Mode v2 defaults before any tag script can be fetched. -->
+<script src="consent.js?v=1"></script>
 <script src="app.js?v=overhaul3"></script>
 </body>
 </html>

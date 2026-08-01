@@ -333,6 +333,12 @@ async function handleRegister() {
     errorEl.style.color = '#22c55e';
     errorEl.textContent = 'Registrace úspěšná! Zkontrolujte email pro potvrzení.';
 
+    // Micro-conversion — shows where people drop out between landing and first purchase.
+    if (window.aizTrack) {
+      window.aizTrack.ga('sign_up', { method: 'email' });
+      window.aizTrack.meta('CompleteRegistration', { content_category: 'aizdenka' });
+    }
+
     // Disable form to prevent re-submission
     document.getElementById('authFirstName').disabled = true;
     const lastNameEl = document.getElementById('authLastName');
@@ -895,6 +901,45 @@ function showCreditArrowHint() {
 }
 
 // ============ CREDIT PURCHASE ============
+
+// Prices mirrored from the backend (purchase.js CREDIT_PACKAGES / subscription.js
+// SUBSCRIPTION_TIERS) purely so begin_checkout can carry a value. The amount actually
+// reported as revenue is always the one Stripe charged, read server-side.
+const CHECKOUT_PRICES_CZK = {
+  small: 390, medium: 890, large: 1990,
+  svetlo: 550, cesta: 1490, zmena: 2800,
+};
+
+/** Identifiers + consent flag sent alongside a checkout request. */
+function checkoutTracking() {
+  try {
+    return window.aizConsent ? window.aizConsent.readTrackingIds() : { consent: false };
+  } catch (e) {
+    return { consent: false };
+  }
+}
+
+/** Fires the "started checkout" event on both platforms. Silent without consent. */
+function trackBeginCheckout(itemId) {
+  const value = CHECKOUT_PRICES_CZK[itemId];
+  if (!value) return;
+  if (window.aizTrack) {
+    window.aizTrack.ga('begin_checkout', {
+      currency: 'CZK',
+      value,
+      affiliation: 'aizdenka.com',
+      items: [{ item_id: itemId, price: value, quantity: 1, affiliation: 'aizdenka.com' }],
+    });
+    window.aizTrack.meta('InitiateCheckout', {
+      currency: 'CZK',
+      value,
+      content_category: 'aizdenka',
+      content_ids: [itemId],
+      content_type: 'product',
+    });
+  }
+}
+
 function openPurchaseModal() {
   const modal = document.getElementById('purchaseModal');
   if (modal) {
@@ -951,6 +996,8 @@ async function purchaseCredits(packageId) {
     return;
   }
 
+  trackBeginCheckout(packageId);
+
   try {
     const response = await fetch(`${API_BASE}/api/purchase`, {
       method: 'POST',
@@ -958,7 +1005,7 @@ async function purchaseCredits(packageId) {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`,
       },
-      body: JSON.stringify({ packageId }),
+      body: JSON.stringify({ packageId, tracking: checkoutTracking() }),
     });
 
     const data = await response.json();
@@ -1230,6 +1277,8 @@ async function subscribeTier(tier) {
     return;
   }
 
+  trackBeginCheckout(tier);
+
   try {
     const response = await fetch(`${API_BASE}/api/subscription`, {
       method: 'POST',
@@ -1237,7 +1286,7 @@ async function subscribeTier(tier) {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`,
       },
-      body: JSON.stringify({ action: 'subscribe', tier }),
+      body: JSON.stringify({ action: 'subscribe', tier, tracking: checkoutTracking() }),
     });
 
     const data = await response.json();

@@ -533,7 +533,7 @@ footer{position:relative;z-index:1;border-top:1px solid rgba(212,175,55,.1);padd
     </div>
     <div class="footer-links">
       <a href="#">Obchodní podmínky</a>
-      <a href="#">Ochrana osobních údajů</a>
+      <a href="soukromi.html">Ochrana osobních údajů</a>
       <a href="#">Blog</a>
     </div>
   </div>
@@ -550,5 +550,8 @@ window.addEventListener('scroll',()=>nav.classList.toggle('scrolled',window.scro
 const obs=new IntersectionObserver((e)=>e.forEach(i=>{if(i.isIntersecting){i.target.classList.add('visible');obs.unobserve(i.target)}}),{threshold:.1,rootMargin:'0px 0px -40px 0px'});
 document.querySelectorAll('.fade-up').forEach(el=>obs.observe(el));
 </script>
+<!-- Cookie consent + GA4/Meta loader. Nothing is fetched from Google or Meta until the
+     visitor accepts; the choice is shared with index.html via same-origin localStorage. -->
+<script src="consent.js?v=1"></script>
 </body>
 </html>
