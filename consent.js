@@ -168,40 +168,36 @@
 
   // ---------- banner ----------
 
+  // A centred modal rather than a dismissible bottom bar: the bar could simply be
+  // ignored, and a visitor who never decides counts as "no consent", so their order
+  // goes unmeasured. Forcing a CHOICE is legitimate; forcing consent is not — hence
+  // two genuinely equivalent buttons and full access to the site either way.
   var CSS = [
-    '.aiz-consent{position:fixed;left:0;right:0;bottom:0;z-index:9999;',
-    'background:#fffdf9;border-top:1px solid rgba(107,58,42,.18);',
-    'box-shadow:0 -4px 24px rgba(0,0,0,.10);padding:1rem 1.2rem;',
+    '.aiz-overlay{position:fixed;inset:0;z-index:99999;background:rgba(24,14,10,.55);',
+    'display:flex;align-items:center;justify-content:center;padding:1.2rem;',
+    'overflow-y:auto;-webkit-overflow-scrolling:touch;',
     'font-family:Inter,system-ui,sans-serif;color:#3b2a24}',
-    '.aiz-consent-inner{max-width:900px;margin:0 auto;display:flex;gap:1rem;',
-    'align-items:center;flex-wrap:wrap;justify-content:space-between}',
-    '.aiz-consent p{margin:0;font-size:.86rem;line-height:1.55;flex:1 1 320px}',
-    '.aiz-consent a{color:#6b3a2a;text-decoration:underline}',
-    '.aiz-consent-actions{display:flex;gap:.6rem;flex:0 0 auto}',
-    // Both buttons are deliberately the same size and weight — a de-emphasised
-    // "reject" is a dark pattern under the EDPB cookie-banner guidance.
-    '.aiz-consent button{font:inherit;font-size:.85rem;font-weight:600;',
-    'padding:.6rem 1.4rem;border-radius:8px;cursor:pointer;border:1px solid #6b3a2a;',
-    'min-width:132px}',
-    '.aiz-consent .aiz-accept{background:#6b3a2a;color:#fff}',
-    '.aiz-consent .aiz-reject{background:transparent;color:#6b3a2a}',
-    '@media(max-width:560px){.aiz-consent-inner{flex-direction:column;align-items:stretch}',
-    '.aiz-consent-actions{flex-direction:column}}',
-    // The chat page pins everything to the viewport with body{overflow:hidden}, so a
-    // fixed bottom bar would sit on top of the UI with no way to scroll past it.
-    // Two selectors, both needed — and both win over style.css's mobile overrides on
-    // specificity (0,2,0 vs 0,1,0) regardless of source order.
-    //
-    // .chat-input-area — the message box on the chat screen.
-    'body.aiz-consent-open .chat-input-area{padding-bottom:calc(.8rem + var(--aiz-consent-h,170px))}',
-    // .auth-screen — the login/registration form. This is the screen a FIRST-TIME
-    // visitor actually sees, i.e. exactly the person the banner is shown to. It is
-    // position:fixed, vertically centred and has no scroll container of its own, so on a
-    // short viewport the submit button could end up under the banner, unreachable.
-    // flex-start + overflow-y:auto gives it a real scroll fallback while the bar is up.
-    'body.aiz-consent-open .auth-screen{justify-content:flex-start;overflow-y:auto;',
-    '-webkit-overflow-scrolling:touch;',
-    'padding-bottom:calc(2rem + var(--aiz-consent-h,170px))}',
+    '.aiz-modal{background:#fffdf9;max-width:460px;width:100%;border-radius:16px;',
+    'padding:1.8rem 1.7rem 1.5rem;box-shadow:0 18px 50px rgba(0,0,0,.28);',
+    'border:1px solid rgba(107,58,42,.14);margin:auto}',
+    '.aiz-modal h2{font-family:Cinzel,Georgia,serif;font-size:1.15rem;color:#6b3a2a;',
+    'margin:0 0 .7rem;font-weight:600}',
+    '.aiz-modal p{margin:0 0 .7rem;font-size:.88rem;line-height:1.6}',
+    '.aiz-modal p.aiz-fine{font-size:.78rem;color:#7a6459;margin-bottom:1.2rem}',
+    '.aiz-modal a{color:#6b3a2a}',
+    '.aiz-actions{display:flex;gap:.7rem}',
+    // Equal size, weight and hit area. A de-emphasised "reject" is the exact pattern
+    // the EDPB cookie-banner taskforce targets and CNIL has fined over.
+    '.aiz-actions button{flex:1 1 0;font:inherit;font-size:.88rem;font-weight:600;',
+    'padding:.75rem 1rem;border-radius:9px;cursor:pointer;border:1.5px solid #6b3a2a;',
+    'line-height:1.2}',
+    '.aiz-actions .aiz-accept{background:#6b3a2a;color:#fff}',
+    '.aiz-actions .aiz-reject{background:transparent;color:#6b3a2a}',
+    '.aiz-actions button:focus-visible{outline:3px solid rgba(107,58,42,.35);outline-offset:2px}',
+    '@media(max-width:420px){.aiz-actions{flex-direction:column}}',
+    // Stops the page behind the modal from scrolling (landing.html scrolls; the chat
+    // page already sets overflow:hidden itself).
+    'body.aiz-consent-open{overflow:hidden}',
   ].join('');
 
   function showBanner() {
@@ -209,21 +205,32 @@
     style.textContent = CSS;
     document.head.appendChild(style);
 
-    var bar = document.createElement('div');
-    bar.className = 'aiz-consent';
-    bar.setAttribute('role', 'dialog');
-    bar.setAttribute('aria-label', 'Souhlas s cookies');
+    var overlay = document.createElement('div');
+    overlay.className = 'aiz-overlay';
 
-    var inner = document.createElement('div');
-    inner.className = 'aiz-consent-inner';
+    var modal = document.createElement('div');
+    modal.className = 'aiz-modal';
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-labelledby', 'aizConsentTitle');
+
+    var title = document.createElement('h2');
+    title.id = 'aizConsentTitle';
+    title.textContent = 'Než začneme';
 
     var text = document.createElement('p');
-    text.innerHTML = 'Rádi bychom měřili návštěvnost a účinnost naší reklamy pomocí '
-      + 'Google Analytics a Meta Pixelu. Bez vašeho souhlasu se nic neodesílá. '
-      + 'Více v <a href="' + POLICY_URL + '">zásadách ochrany osobních údajů</a>.';
+    text.textContent = 'Abychom věděli, komu Zdenčina pomoc dává smysl, měříme pomocí '
+      + 'Google Analytics a Mety, kolik lidí web navštíví a kolik si výklad objedná. '
+      + 'Pomáhá nám to oslovovat lidi, kterým máme co nabídnout — a neplýtvat jinde.';
+
+    var fine = document.createElement('p');
+    fine.className = 'aiz-fine';
+    fine.innerHTML = 'Obsah vašich dotazů ani odpovědí se nikam neodesílá — nikdy. '
+      + 'Pokud měření odmítnete, web funguje úplně stejně. '
+      + 'Podrobnosti v <a href="' + POLICY_URL + '">zásadách ochrany osobních údajů</a>.';
 
     var actions = document.createElement('div');
-    actions.className = 'aiz-consent-actions';
+    actions.className = 'aiz-actions';
 
     var reject = document.createElement('button');
     reject.className = 'aiz-reject';
@@ -233,12 +240,11 @@
     var accept = document.createElement('button');
     accept.className = 'aiz-accept';
     accept.type = 'button';
-    accept.textContent = 'Přijmout';
+    accept.textContent = 'Souhlasím';
 
     function close() {
-      if (bar.parentNode) bar.parentNode.removeChild(bar);
+      if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
       document.body.classList.remove('aiz-consent-open');
-      document.body.style.removeProperty('--aiz-consent-h');
     }
 
     reject.addEventListener('click', function () { remember('denied'); close(); });
@@ -246,26 +252,18 @@
 
     actions.appendChild(reject);
     actions.appendChild(accept);
-    inner.appendChild(text);
-    inner.appendChild(actions);
-    bar.appendChild(inner);
-    document.body.appendChild(bar);
-
-    // Measured rather than hard-coded — the height depends on how the text wraps.
-    // Re-measured afterwards because the first read happens before the web font has
-    // swapped in and before any rotation, either of which re-wraps the paragraph.
+    modal.appendChild(title);
+    modal.appendChild(text);
+    modal.appendChild(fine);
+    modal.appendChild(actions);
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
     document.body.classList.add('aiz-consent-open');
-    function measure() {
-      if (!bar.parentNode) return;
-      document.body.style.setProperty('--aiz-consent-h', bar.offsetHeight + 'px');
-    }
-    measure();
-    if (window.ResizeObserver) {
-      new window.ResizeObserver(measure).observe(bar);
-    } else {
-      window.addEventListener('resize', measure);
-      if (document.fonts && document.fonts.ready) document.fonts.ready.then(measure);
-    }
+
+    // Deliberately NOT closable by Escape or by clicking the backdrop: a dismissal that
+    // records no choice is what left orders unmeasured with the previous bottom bar.
+    // Both buttons stay one keystroke apart, so no one is trapped.
+    accept.focus();
   }
 
   function init() {
