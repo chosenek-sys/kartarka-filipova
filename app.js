@@ -923,7 +923,7 @@ function showCreditArrowHint() {
 const CHECKOUT_PRICES_CZK = {
   small: 390, medium: 890, large: 1990,
   svetlo: 550, cesta: 1490, zmena: 2800,
-  test: 1, // admin-only verification purchase — kept here so begin_checkout fires for it too
+  test: 20, // admin-only verification purchase — kept here so begin_checkout fires for it too
 };
 
 /**
