@@ -199,6 +199,15 @@
           <div class="package-price">1 990 Kč</div>
           <div class="package-detail">180 zpráv · 36 výkladů · 36 audio</div>
         </div>
+        <!-- Admin-only test purchase. Revealed by app.js when app_metadata.role is
+             'admin'; the backend enforces the same check, so hiding it here is
+             convenience, not security. -->
+        <div class="package-card hidden" id="testPackageCard" onclick="purchaseCredits('test')">
+          <div class="package-amount">1</div>
+          <div class="package-label">kredit — TEST</div>
+          <div class="package-price">1 Kč</div>
+          <div class="package-detail">Ověření platby a měření · jen pro adminy</div>
+        </div>
       </div>
       <p class="modal-footer-text">1 kredit = textová odpověď · 5 kreditů = kartový výklad · 5 kreditů = hlasová odpověď</p>
     </div>

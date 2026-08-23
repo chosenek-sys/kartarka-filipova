@@ -555,6 +555,12 @@ function showChat(user) {
   if (adminLink) {
     adminLink.classList.toggle('hidden', !isAdmin);
   }
+  // 1 Kč test purchase — lets us exercise the live payment and conversion-tracking
+  // chain without a 390 Kč charge. The backend rejects it for non-admins regardless.
+  const testCard = document.getElementById('testPackageCard');
+  if (testCard) {
+    testCard.classList.toggle('hidden', !isAdmin);
+  }
 
   // Start fresh with welcome screen
   startNewConversation();
@@ -908,6 +914,7 @@ function showCreditArrowHint() {
 const CHECKOUT_PRICES_CZK = {
   small: 390, medium: 890, large: 1990,
   svetlo: 550, cesta: 1490, zmena: 2800,
+  test: 1, // admin-only verification purchase — kept here so begin_checkout fires for it too
 };
 
 /** Identifiers + consent flag sent alongside a checkout request. */
