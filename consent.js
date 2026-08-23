@@ -18,6 +18,7 @@
   var GA4_ID = 'G-S1FS00QJS1';
   var META_PIXEL_ID = '703651071435743';
   var STORAGE_KEY = 'aizdenka_consent_v1';
+  var DECIDED_AT_KEY = 'aizdenka_consent_at_v1';
   var POLICY_URL = 'soukromi.html';
 
   var loaded = false;
@@ -33,9 +34,23 @@
   }
 
   function remember(value) {
+    var decidedAt = new Date().toISOString();
     try {
       window.localStorage.setItem(STORAGE_KEY, value);
+      // Every login replays this browser's stored decision to the server. Without a
+      // timestamp, a second device still holding an old "granted" would overwrite — and
+      // silently undo — a withdrawal made here.
+      window.localStorage.setItem(DECIDED_AT_KEY, decidedAt);
     } catch (e) { /* nothing we can do; banner simply reappears next visit */ }
+
+    // app.js listens and mirrors the decision to /api/consent for logged-in users. The
+    // Stripe webhook needs a durable copy: it runs long after this page is gone, and
+    // without one a withdrawal could never reach a subscription renewal.
+    try {
+      window.dispatchEvent(new CustomEvent('aiz-consent-change', {
+        detail: { granted: value === 'granted', decidedAt: decidedAt },
+      }));
+    } catch (e) { /* CustomEvent unsupported — server copy is best-effort */ }
   }
 
   function granted() {
@@ -294,7 +309,27 @@
     window.location.reload();
   }
 
-  window.aizConsent = { granted: granted, readTrackingIds: readTrackingIds, revoke: revoke };
+  /** Has the visitor actually chosen yet? Undecided is not the same as refused. */
+  function decided() {
+    return stored() !== null;
+  }
+
+  /** When this browser's decision was made, for last-write-wins across devices. */
+  function decidedAt() {
+    try {
+      return window.localStorage.getItem(DECIDED_AT_KEY);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  window.aizConsent = {
+    granted: granted,
+    decided: decided,
+    decidedAt: decidedAt,
+    readTrackingIds: readTrackingIds,
+    revoke: revoke,
+  };
 
   window.aizTrack = {
     ga: function (name, params) {

@@ -562,6 +562,15 @@ function showChat(user) {
     testCard.classList.toggle('hidden', !isAdmin);
   }
 
+  // A visitor usually decides on cookies before logging in, so the decision was made
+  // while there was no account to attach it to. Push it now. Undecided is deliberately
+  // not synced — that is not the same as a refusal.
+  // Safe to replay on every login: the server keeps whichever decision is newer, so a
+  // second device holding a stale "granted" cannot undo a withdrawal made elsewhere.
+  if (window.aizConsent && window.aizConsent.decided()) {
+    syncConsentToServer(window.aizConsent.granted(), window.aizConsent.decidedAt());
+  }
+
   // Start fresh with welcome screen
   startNewConversation();
 
@@ -916,6 +925,34 @@ const CHECKOUT_PRICES_CZK = {
   svetlo: 550, cesta: 1490, zmena: 2800,
   test: 1, // admin-only verification purchase — kept here so begin_checkout fires for it too
 };
+
+/**
+ * Mirror the consent decision to the backend so the Stripe webhook can honour it.
+ *
+ * Only possible for logged-in users — an anonymous visitor has no account to attach it
+ * to, and their consent still travels with the checkout metadata anyway. Best-effort:
+ * a failure here must never disturb the page.
+ */
+async function syncConsentToServer(granted, decidedAt) {
+  try {
+    const token = await getAccessToken();
+    // Logged out: nothing to attach the decision to. It stays in localStorage and gets
+    // replayed by the login-time sync below, so it is deferred rather than lost.
+    if (!token) return;
+    const res = await fetch(`${API_BASE}/api/consent`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ consent: !!granted, decidedAt: decidedAt || null }),
+    });
+    if (!res.ok) console.warn('Consent sync rejected:', res.status);
+  } catch (e) {
+    console.warn('Consent sync failed:', e);
+  }
+}
+
+window.addEventListener('aiz-consent-change', (e) => {
+  syncConsentToServer(e.detail && e.detail.granted, e.detail && e.detail.decidedAt);
+});
 
 /** Identifiers + consent flag sent alongside a checkout request. */
 function checkoutTracking() {
