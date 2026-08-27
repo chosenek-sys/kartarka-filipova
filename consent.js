@@ -299,14 +299,100 @@
 
   // ---------- public API ----------
 
+  var SETTINGS_CSS = [
+    '.aiz-set-ov{position:fixed;inset:0;z-index:99999;background:rgba(24,14,10,.45);',
+    'display:flex;align-items:center;justify-content:center;padding:1.2rem;',
+    'font-family:Inter,system-ui,sans-serif;color:#3b2a24}',
+    '.aiz-set{background:#fffdf9;max-width:340px;width:100%;border-radius:14px;',
+    'padding:1.4rem 1.4rem 1.2rem;box-shadow:0 14px 40px rgba(0,0,0,.25);',
+    'border:1px solid rgba(107,58,42,.14);position:relative}',
+    '.aiz-set h3{font-size:1rem;margin:0 0 .5rem;color:#6b3a2a}',
+    '.aiz-set p{margin:0 0 1rem;font-size:.85rem;line-height:1.55}',
+    '.aiz-set-state{font-weight:600}',
+    '.aiz-set-row{display:flex;gap:.6rem}',
+    '.aiz-set-row button{flex:1 1 0;font:inherit;font-size:.85rem;font-weight:600;',
+    'padding:.6rem .8rem;border-radius:8px;cursor:pointer;border:1.5px solid #6b3a2a}',
+    '.aiz-set-row .on{background:#6b3a2a;color:#fff}',
+    '.aiz-set-row .off{background:transparent;color:#6b3a2a}',
+    '.aiz-set-x{position:absolute;top:.5rem;right:.7rem;background:none;border:none;',
+    'font-size:1.2rem;line-height:1;cursor:pointer;color:#8a7266}',
+  ].join('');
+
   /**
-   * Forget the stored decision and ask again. Already-loaded tag scripts cannot be
-   * unloaded from the live page, so we reload — after which nothing is injected unless
-   * the visitor accepts again.
+   * Small settings dialog for changing the decision later.
+   *
+   * Deliberately NOT the full consent banner: reopening that across the whole page for
+   * someone who only wanted to peek at their setting is far too loud. Closing without
+   * choosing leaves the existing decision untouched — walking away means "as before",
+   * not "withdrawn".
+   *
+   * Saving reloads, because tag scripts already injected into this page cannot be
+   * unloaded. The reload shows no banner, since a decision now exists either way.
    */
-  function revoke() {
-    try { window.localStorage.removeItem(STORAGE_KEY); } catch (e) { /* ignore */ }
-    window.location.reload();
+  function openSettings() {
+    if (document.querySelector('.aiz-set-ov')) return;
+
+    var style = document.createElement('style');
+    style.textContent = SETTINGS_CSS;
+    document.head.appendChild(style);
+
+    var ov = document.createElement('div');
+    ov.className = 'aiz-set-ov';
+    var box = document.createElement('div');
+    box.className = 'aiz-set';
+    box.setAttribute('role', 'dialog');
+    box.setAttribute('aria-label', 'Nastavení měření');
+
+    var x = document.createElement('button');
+    x.className = 'aiz-set-x';
+    x.type = 'button';
+    x.setAttribute('aria-label', 'Zavřít');
+    x.textContent = '×';
+
+    var h = document.createElement('h3');
+    h.textContent = 'Nastavení měření';
+
+    var p = document.createElement('p');
+    var state = document.createElement('span');
+    state.className = 'aiz-set-state';
+    state.textContent = granted() ? 'povoleno' : (decided() ? 'odmítnuto' : 'nenastaveno');
+    p.appendChild(document.createTextNode('Měření návštěvnosti a reklamy je nyní '));
+    p.appendChild(state);
+    p.appendChild(document.createTextNode('.'));
+
+    var row = document.createElement('div');
+    row.className = 'aiz-set-row';
+
+    var off = document.createElement('button');
+    off.className = 'off';
+    off.type = 'button';
+    off.textContent = 'Odmítnout';
+
+    var on = document.createElement('button');
+    on.className = 'on';
+    on.type = 'button';
+    on.textContent = 'Povolit';
+
+    function close() { if (ov.parentNode) ov.parentNode.removeChild(ov); }
+    function save(value) {
+      remember(value);            // also mirrors to the server for logged-in users
+      window.location.reload();
+    }
+
+    x.addEventListener('click', close);
+    ov.addEventListener('click', function (e) { if (e.target === ov) close(); });
+    off.addEventListener('click', function () { save('denied'); });
+    on.addEventListener('click', function () { save('granted'); });
+
+    row.appendChild(off);
+    row.appendChild(on);
+    box.appendChild(x);
+    box.appendChild(h);
+    box.appendChild(p);
+    box.appendChild(row);
+    ov.appendChild(box);
+    document.body.appendChild(ov);
+    on.focus();
   }
 
   /** Has the visitor actually chosen yet? Undecided is not the same as refused. */
@@ -328,7 +414,7 @@
     decided: decided,
     decidedAt: decidedAt,
     readTrackingIds: readTrackingIds,
-    revoke: revoke,
+    openSettings: openSettings,
   };
 
   window.aizTrack = {

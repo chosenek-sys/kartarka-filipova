@@ -144,7 +144,7 @@ obnovení předplatného</strong>, tedy i u předplatného, které jste sjednali
 <p>Aby se odvolání propsalo i na budoucí platby, potřebujeme ho spárovat s vaším účtem —
 proveďte ho proto prosím přihlášeni. Rozhodnutí učiněné bez přihlášení se uplatní ve vašem
 prohlížeči okamžitě a k účtu se doplní při nejbližším přihlášení.</p>
-<button class="btn" type="button" id="revokeBtn">Změnit nastavení cookies</button>
+<button class="btn" type="button" id="consentSettingsBtn">Změnit nastavení měření</button>
 
 <h2>5. Automatizované zpracování a umělá inteligence</h2>
 <p>Odpovědi v aplikaci generuje jazykový model umělé inteligence. Nejde o rozhodování
@@ -183,8 +183,8 @@ Dozorovým úřadem je <strong>Úřad pro ochranu osobních údajů</strong>, Pp
 
 <script src="consent.js?v=1"></script>
 <script>
-document.getElementById('revokeBtn').addEventListener('click', function () {
-  if (window.aizConsent) window.aizConsent.revoke();
+document.getElementById('consentSettingsBtn').addEventListener('click', function () {
+  if (window.aizConsent) window.aizConsent.openSettings();
 });
 </script>
 </body>
