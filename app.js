@@ -773,7 +773,7 @@ function showWelcome() {
     <div class="welcome-msg">
       <div class="icon">✨</div>
       <h3>Vítejte u AI Zdenky</h3>
-      <p>Jsem AI asistentka inspirovaná Zdenkou Filipovou. Mohu vám poskytnout duchovní vedení, kartové výklady a podporu na vaší cestě.</p>
+      <p>Jsem AI asistentka inspirovaná Zdenkou Filipovou. Mohu vám nabídnout osobní vedení, inspiraci a podporu pro každodenní život.</p>
 
       <div class="welcome-section">
         <div class="welcome-section-title">🔮 Zeptejte se na cokoliv</div>
