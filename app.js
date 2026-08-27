@@ -780,7 +780,7 @@ function showWelcome() {
         <div class="suggestions">
           <div class="suggestion" onclick="sendSuggestion(this)">Jak mohu změnit svůj život?</div>
           <div class="suggestion" onclick="sendSuggestion(this)">Potřebuji radu ohledně vztahu</div>
-          <div class="suggestion" onclick="sendSuggestion(this)">Cítím se ztracená, co mi poradíte?</div>
+          <div class="suggestion" onclick="sendSuggestion(this)">Hledám směr, kudy dál</div>
           <div class="suggestion" onclick="sendSuggestion(this)">Jak najít vnitřní klid?</div>
         </div>
       </div>
