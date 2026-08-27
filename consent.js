@@ -57,6 +57,16 @@
     return stored() === 'granted';
   }
 
+  // Anything other than the two values we write is treated as no decision at all, so a
+  // corrupted key cannot leave the dialog claiming "refused" while init() keeps showing
+  // the banner as if nothing had been chosen.
+  (function normalizeStoredValue() {
+    var v = stored();
+    if (v !== null && v !== 'granted' && v !== 'denied') {
+      try { window.localStorage.removeItem(STORAGE_KEY); } catch (e) { /* ignore */ }
+    }
+  })();
+
   // ---------- tag stubs (queue only — no network until consent) ----------
 
   window.dataLayer = window.dataLayer || [];
@@ -338,10 +348,13 @@
 
     var ov = document.createElement('div');
     ov.className = 'aiz-set-ov';
+    var opener = document.activeElement;
+
     var box = document.createElement('div');
     box.className = 'aiz-set';
     box.setAttribute('role', 'dialog');
-    box.setAttribute('aria-label', 'Nastavení měření');
+    box.setAttribute('aria-modal', 'true');
+    box.setAttribute('aria-label', 'Nastavení soukromí');
 
     var x = document.createElement('button');
     x.className = 'aiz-set-x';
@@ -380,11 +393,35 @@
     on.type = 'button';
     on.textContent = 'Souhlasím';
 
-    function close() { if (ov.parentNode) ov.parentNode.removeChild(ov); }
+    function close() {
+      if (ov.parentNode) ov.parentNode.removeChild(ov);
+      document.removeEventListener('keydown', onKeydown, true);
+      // Send focus back where it came from, rather than dropping it on <body>.
+      if (opener && typeof opener.focus === 'function') {
+        try { opener.focus(); } catch (e) { /* opener may be gone */ }
+      }
+    }
+
     function save(value) {
       remember(value);            // also mirrors to the server for logged-in users
       window.location.reload();
     }
+
+    // Escape closes, and Tab is kept inside the dialog. Without this the first Tab landed
+    // on the login field behind the overlay while the dialog was still up.
+    function onKeydown(e) {
+      if (e.key === 'Escape') { e.preventDefault(); close(); return; }
+      if (e.key !== 'Tab') return;
+      var focusable = [x, off, on];
+      var first = focusable[0], last = focusable[focusable.length - 1];
+      var active = document.activeElement;
+      if (e.shiftKey && (active === first || !box.contains(active))) {
+        e.preventDefault(); last.focus();
+      } else if (!e.shiftKey && (active === last || !box.contains(active))) {
+        e.preventDefault(); first.focus();
+      }
+    }
+    document.addEventListener('keydown', onKeydown, true);
 
     x.addEventListener('click', close);
     ov.addEventListener('click', function (e) { if (e.target === ov) close(); });

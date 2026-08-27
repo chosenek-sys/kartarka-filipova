@@ -547,7 +547,13 @@ function showChat(user) {
   document.getElementById('chatApp').classList.remove('hidden');
 
   const userNameEl = document.getElementById('userName');
-  if (userNameEl) userNameEl.textContent = user.email;
+  if (userNameEl) {
+    userNameEl.textContent = user.email;
+    // The visible text is the address, so on its own a screen reader announces only
+    // "user@example.com, button" with no hint that it opens privacy settings. title is
+    // not a dependable label, so name the control explicitly.
+    userNameEl.setAttribute('aria-label', `Nastavení soukromí a měření — ${user.email}`);
+  }
 
   // Admin detection
   isAdmin = user.app_metadata?.role === 'admin';
@@ -954,10 +960,14 @@ async function syncConsentToServer(granted, decidedAt) {
     // Logged out: nothing to attach the decision to. It stays in localStorage and gets
     // replayed by the login-time sync below, so it is deferred rather than lost.
     if (!token) return;
+    // keepalive lets the request outlive the page: the settings dialog reloads immediately
+    // after saving, and an ordinary fetch would simply be aborted mid-flight — losing the
+    // withdrawal the visitor just made.
     const res = await fetch(`${API_BASE}/api/consent`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify({ consent: !!granted, decidedAt: decidedAt || null }),
+      keepalive: true,
     });
     if (!res.ok) console.warn('Consent sync rejected:', res.status);
   } catch (e) {
