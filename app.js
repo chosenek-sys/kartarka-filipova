@@ -927,6 +927,21 @@ const CHECKOUT_PRICES_CZK = {
 };
 
 /**
+ * Opens the measurement-consent dialog from inside the app.
+ *
+ * Wired to the sidebar so a signed-in visitor can actually change their mind: the only
+ * other entry point is the privacy page, which is linked from the registration form and
+ * therefore unreachable once someone is logged in.
+ */
+function openConsentSettings() {
+  if (window.aizConsent && window.aizConsent.openSettings) {
+    window.aizConsent.openSettings();
+  } else {
+    window.open('soukromi.html', '_blank');
+  }
+}
+
+/**
  * Mirror the consent decision to the backend so the Stripe webhook can honour it.
  *
  * Only possible for logged-in users — an anonymous visitor has no account to attach it
