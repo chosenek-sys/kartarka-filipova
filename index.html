@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>AI Zdenka – Duchovní průvodkyně</title>
-<meta name="description" content="Poraďte se s AI asistentkou Zdenky Filipové. Duchovní vedení a podpora — textově i hlasově.">
+<title>AI Zdenka – osobní vedení a podpora</title>
+<meta name="description" content="Poraďte se s AI asistentkou Zdenky Filipové. Osobní vedení, inspirace a podpora pro každodenní život — textově i hlasově.">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <link rel="stylesheet" href="style.css?v=dual2">
@@ -18,7 +18,7 @@
 <div class="auth-screen" id="authScreen">
   <img src="images/logo.jpg" alt="AI Zdenka" class="logo-icon">
   <h1>AI Zdenka</h1>
-  <p>AI asistentka inspirovaná Zdenkou Filipovou. Přihlaste se pro duchovní vedení a podporu.</p>
+  <p>AI asistentka inspirovaná Zdenkou Filipovou. Objevte osobní vedení, inspiraci a podporu pro každodenní život.</p>
   <form class="auth-form" onsubmit="return false" autocomplete="on">
     <div id="registerFields" class="hidden">
       <div class="auth-name-row">
@@ -28,7 +28,7 @@
       <input type="text" class="auth-input" id="authDob" placeholder="Datum narození * dd/mm/yyyy" inputmode="numeric" maxlength="10">
       <label class="auth-gdpr-label">
         <input type="checkbox" id="authGdpr">
-        <span>Souhlasím se zpracováním osobních údajů dle GDPR pro účely duchovního poradenství. Podrobnosti v <a href="soukromi.html" target="_blank" rel="noopener">zásadách ochrany osobních údajů</a>.</span>
+        <span>Souhlasím se zpracováním osobních údajů dle GDPR pro účely poskytování poradenské služby. Podrobnosti v <a href="soukromi.html" target="_blank" rel="noopener">zásadách ochrany osobních údajů</a>.</span>
       </label>
     </div>
     <input type="email" class="auth-input" id="authEmail" placeholder="Email" autocomplete="email">
@@ -65,7 +65,7 @@
       <img src="images/logo.jpg" alt="Zdenka" class="chat-avatar">
       <div class="chat-header-info">
         <h2>Zdenka Filipová</h2>
-        <p><span class="online-dot"></span> AI Duchovní průvodkyně</p>
+        <p><span class="online-dot"></span> AI asistentka</p>
       </div>
       <div class="credit-display" id="creditDisplay">
         <span class="subscription-badge hidden" id="subscriptionBadge"></span>
@@ -83,7 +83,7 @@
       <div class="welcome-msg">
         <div class="icon">✨</div>
         <h3>Vítejte u AI Zdenky</h3>
-        <p>Jsem AI asistentka inspirovaná Zdenkou Filipovou. Mohu vám poskytnout duchovní vedení a podporu.</p>
+        <p>Jsem AI asistentka inspirovaná Zdenkou Filipovou. Mohu vám nabídnout osobní vedení, inspiraci a podporu pro každodenní život.</p>
         <div class="suggestions">
           <div class="suggestion" onclick="sendSuggestion(this)">Jak mohu změnit svůj život?</div>
           <div class="suggestion" onclick="sendSuggestion(this)">Potřebuji radu ohledně vztahu</div>
