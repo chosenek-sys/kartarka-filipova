@@ -1,7 +1,7 @@
 /**
  * Cookie consent + measurement loader for aizdenka.com.
  *
- * Shared by landing.html and index.html. Nothing reaches Google or Meta before the
+ * Nothing reaches Google or Meta before the
  * visitor opts in: the tag scripts are only injected on consent, and the refusal is
  * also forwarded to our own backend so the server-side Conversions API stays silent
  * too — it is the same processing purpose, just a different transport.
