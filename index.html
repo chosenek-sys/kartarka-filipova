@@ -53,10 +53,10 @@
     </div>
     <div id="conversationList"></div>
     <div class="sidebar-footer">
-      <span class="user-email" id="userName"></span>
-      <!-- Withdrawing consent has to be as easy as giving it (GDPR Art. 7(3)). Until this
-           existed, the only way in was the privacy page, unreachable once logged in. -->
-      <button class="btn-logout" onclick="openConsentSettings()" title="Nastavení měření">Soukromí</button>
+      <!-- The address doubles as the way into privacy settings: withdrawing consent must
+           be as easy as giving it (GDPR Art. 7(3)), and the privacy page is linked only
+           from the registration form, which a signed-in visitor never sees again. -->
+      <button class="user-email" id="userName" onclick="openConsentSettings()" title="Nastavení soukromí"></button>
       <button class="btn-logout" onclick="handleLogout()">Odhlásit</button>
     </div>
   </div>

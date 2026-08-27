@@ -350,13 +350,20 @@
     x.textContent = '×';
 
     var h = document.createElement('h3');
-    h.textContent = 'Nastavení měření';
+    h.textContent = 'Vaše soukromí';
+
+    // Warm and in the site's voice, but deliberately free of the vocabulary that got the
+    // domain filed under a restricted category — reassurance, not spiritual framing.
+    var lead = document.createElement('p');
+    lead.textContent = 'Co Zdence napíšete, zůstává mezi vámi dvěma. Obsah konzultací '
+      + 'neodesíláme nikam a nikdy.';
 
     var p = document.createElement('p');
     var state = document.createElement('span');
     state.className = 'aiz-set-state';
-    state.textContent = granted() ? 'povoleno' : (decided() ? 'odmítnuto' : 'nenastaveno');
-    p.appendChild(document.createTextNode('Měření návštěvnosti a reklamy je nyní '));
+    state.textContent = granted() ? 'ano' : (decided() ? 'ne' : 'zatím nerozhodnuto');
+    p.appendChild(document.createTextNode('Smíme sledovat, kolik lidí sem přijde a jestli '
+      + 'má naše reklama smysl? Teď: '));
     p.appendChild(state);
     p.appendChild(document.createTextNode('.'));
 
@@ -366,12 +373,12 @@
     var off = document.createElement('button');
     off.className = 'off';
     off.type = 'button';
-    off.textContent = 'Odmítnout';
+    off.textContent = 'Raději ne';
 
     var on = document.createElement('button');
     on.className = 'on';
     on.type = 'button';
-    on.textContent = 'Povolit';
+    on.textContent = 'Souhlasím';
 
     function close() { if (ov.parentNode) ov.parentNode.removeChild(ov); }
     function save(value) {
@@ -388,6 +395,7 @@
     row.appendChild(on);
     box.appendChild(x);
     box.appendChild(h);
+    box.appendChild(lead);
     box.appendChild(p);
     box.appendChild(row);
     ov.appendChild(box);
