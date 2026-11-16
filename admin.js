@@ -232,7 +232,6 @@ async function loadStats() {
     $('statUsers').textContent = data.totalUsers;
     $('statActive').textContent = data.activeUsers7d;
     $('statMessages').textContent = data.totalMessages.toLocaleString('cs-CZ');
-    $('statCost').textContent = `$${data.totalCostUsd.toFixed(2)}`;
     $('statCredits').textContent = data.credits.totalBalance.toLocaleString('cs-CZ');
   } catch (error) {
     console.error('Failed to load stats:', error);
@@ -415,10 +414,6 @@ function renderUserDetail(detail) {
       <div class="info-item">
         <span class="info-label">Zprávy</span>
         <span class="info-value">${stats.messageCount}</span>
-      </div>
-      <div class="info-item">
-        <span class="info-label">Náklady (USD)</span>
-        <span class="info-value">$${stats.totalCostUsd.toFixed(4)}</span>
       </div>
       <div class="info-item">
         <span class="info-label">Registrace</span>
